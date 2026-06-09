@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- HLS.js for EXTREME STREAM SPEED -->
+    <!-- HLS.js for EXTREME STREAM SPEED (Web Fallback) -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     
     <style>
@@ -161,7 +161,7 @@
             width: 35px; height: 3px; background: var(--blue-text); border-radius: 0 0 5px 5px; box-shadow: 0 2px 8px var(--blue-text); 
         }
 
-        /* Settings Page Enhanced Premium Design */
+        /* Settings Page */
         .settings-container { padding: 15px; }
         .settings-card { 
             background: linear-gradient(145deg, #1a1a24, #0d0d12); border: 1px solid rgba(255,255,255,0.08); 
@@ -179,13 +179,52 @@
             color: #60a5fa; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 5px;
         }
 
-        /* STREAM PLAYER SECTION */
-        #streamPage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 9999; display: none; }
+        /* STREAM PLAYER SECTION - FULLY ENHANCED FOR EXOPLAYER OVERLAY */
+        #streamPage { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            background-color: #000; 
+            z-index: 9999; 
+            display: none; 
+        }
         #streamPage.active { display: block; }
         
-        .video-container { width: 100%; height: 100%; background: #000; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .video-container { 
+            width: 100%; 
+            height: 100%; 
+            background: #000; 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+        }
         .video-container video { width: 100%; height: 100%; object-fit: contain; }
         
+        /* SPECIFIC EXOPLAYER TRANSPARENCY STYLING */
+        body.android-app #streamPage,
+        body.android-app .video-container {
+            background-color: transparent !important;
+            background: transparent !important;
+        }
+        body.android-app #hlsVideo {
+            display: none !important; /* Hide native HTML5 video inside APK */
+        }
+        
+        /* Portrait Responsive Style for Android Overlay */
+        @media (orientation: portrait) {
+            body.android-app .video-container {
+                height: 250px !important;
+                background: transparent !important;
+            }
+            body.android-app #streamPage {
+                background: #0A0E17 !important;
+            }
+        }
+
         .premium-loader { 
             width: 50px; height: 50px; border: 4px solid rgba(77, 166, 255, 0.15); border-top-color: var(--blue-text); 
             border-radius: 50%; animation: premiumSpin 0.7s linear infinite; position: absolute; z-index: 20; display: none; 
@@ -346,7 +385,7 @@
             </a>
         </div>
 
-        <!-- گۆڕانکاری بۆ مۆسیقا و قورئان -->
+        <!-- مۆسیقا و قورئان -->
         <div class="section-wrapper" id="home-music">
             <div class="section-header">
                 <div class="section-title"><i class="fa-solid fa-music" style="color: #9c27b0;"></i> مۆسیقا و قورئان</div>
@@ -370,7 +409,6 @@
             <div id="chip-news" class="chip" onclick="filterCategory('news', this)"><i class="fa-solid fa-newspaper"></i> هەواڵ</div>
             <div id="chip-sports" class="chip" onclick="filterCategory('sports', this)"><i class="fa-solid fa-soccer-ball"></i> وەرزش</div>
             <div id="chip-movies" class="chip" onclick="filterCategory('movies', this)"><i class="fa-solid fa-film"></i> فیلم</div>
-            <!-- گۆڕانکاری بۆ مۆسیقا و قورئان -->
             <div id="chip-music" class="chip" onclick="filterCategory('music', this)"><i class="fa-solid fa-music"></i> مۆسیقا و قورئان</div>
         </div>
         <div id="channelContent" style="padding: 10px 15px;">
@@ -378,7 +416,7 @@
         </div>
     </div>
 
-    <!-- SETTINGS PAGE (Enhanced Premium Design with TikTok & Version) -->
+    <!-- SETTINGS PAGE -->
     <div id="settingsPage" class="page">
         <div class="header-container">
             <div class="page-title text-center font-bold">ڕێکخستن</div>
@@ -454,7 +492,6 @@
     </div>
 
     <script>
-        // داتابەیسێ لێنکێن ڕاستەوخۆ (بۆ خێراترین لۆدکرن) بێ Base64 و بێ VPN Block
         const database = [
             // هەواڵەکان (News)
             { name: "Channel 8", type: "news", logo: "https://i.ibb.co/B55XSx5q/CHANNEL8-Iraq.webp", stream: "https://live.channel8.com/Channel8-Kurdish/index.fmp4.m3u8" },
@@ -478,8 +515,8 @@
             { name: "MMN Sport", type: "sports", logo: "https://i.ibb.co/bMTjRs77/mmn-tv-528x297.png", stream: "http://mmn.mypsx.net:1935/live/mmnhdsport/chunklist_w29500582.m3u8" },
             { name: "NRT Sport", type: "sports", logo: "https://i.ibb.co/k6BnVvYS/images-3.jpg", stream: "https://live20.bozztv.com/giatv/giatv-NRT-SPORT/NRT-SPORT/chunks.m3u8" },
             { name: "SPI Sport", type: "sports", logo: "https://i.ibb.co/dJj2wZR8/images-15.jpg", stream: "https://live20.bozztv.com/giatv/giatv-spi_sports_hd/spi_sports_hd/chunks.m3u8" },
-            { name: "Alwan Sport 1", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/Kareemsulaiman/PZutg4hj5kQA/315214.m3u8?token=SxRYWRUKFwgbVFBdVABUUw9VDlZbVQYIAQBeUABQW1RRBVMMBwdTClsVGRsRFkcHWQtpD1xBDQsHBwpQBhkbFkNTQmcPBhcIGwYEAFRUDEAUREIPVQYVAgYeGhFbURtZEgAHDFVQFx4bUk1NBxBbA1Q5UgNOClRdFAhWFF5ZFUFfWG9cAw9UXF0VDxtSQBlAURVGRAINQlRaHhoDW0FLAkRTEgJEUQQGGxsXWg0XWxZKHxRcGipmGhoQXRlGUFcQWVleGlxAWAFMDxcVQAtGPUoDRRJKBlZVU0AaWxAFG08SW1FAOQFaXFdSVk0LDVsRGlwUVxpPFVVZXFEVXUdmE1lSEgJEUAUHDwcXRA==" },
-            { name: "Alwan Sport 2", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/Kareemsulaiman/PZutg4hj5kQA/315215.m3u8?token=SxRYWRUKFwgbBFABVwdTWg8HBl4JVFIPV1daUwsGAVQDU1EAVFdWUQgVGRsRFkcHWQtpD1xBDQsHBwpQBxkbFkNTQmcPBhcIGwYEAFRUDEAUREIPVQYVAgYeGhFbURtZEgEADl9TFx4bUk1NBxBbA1Q5UgNOClRdFAhWFF5ZFUFfWG9cAw9UXF0VDxtSQBlAURVGRAINQlRaHhoDW0FLAkRTEgJEVQALGxsXWg0XWxZKHxRcGipmGhoQXRlGUFcQWVleGlxAWAFMDxcVQAtGPUoDRRJKBlZVU0AaWxAFG08SW1FAOQFaXFdSVk0LDVsRGlwUVxpPFVVZXFEVXUdmE1lSEgJEUAUHDg8XRA==" },
+            { name: "Alwan Sport 1", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/Kareemsulaiman/PZutg4hj5kQA/315214.m3u8" },
+            { name: "Alwan Sport 2", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/Kareemsulaiman/PZutg4hj5kQA/315215.m3u8" },
 
             // فیلم (Movies)
             { name: "Avar TV", type: "movies", logo: "https://i.ibb.co/b51Lmw7Q/images-17.jpg", stream: "https://avr.host247.net/live/AvarTv/playlist.m3u8" },
@@ -512,6 +549,10 @@
         let currentPlayingUrl = "";
 
         document.addEventListener("DOMContentLoaded", () => {
+            // Check if loaded inside native android wrapper to change transparent themes
+            if (window.AndroidBridge) {
+                document.body.classList.add('android-app');
+            }
             renderDashboard();
             renderAllChannelsPage();
             renderVideoPlayerBottomCarousel();
@@ -526,9 +567,7 @@
         }
 
         function createCard(item) {
-            // گۆڕینی ناڤێ مۆسیقا بۆ مۆسیقا و قورئان دناڤ باج (Badge)
             const displayType = item.type === 'music' ? 'مۆسیقا و قورئان' : item.type;
-            
             return `
                 <div class="channel-card search-target" data-name="${item.name.toLowerCase()}" data-type="${item.type}" onclick="triggerStreamingOverlay('${item.stream}', '${item.name}')">
                     <div class="logo-container">
@@ -621,14 +660,9 @@
         async function triggerStreamingOverlay(streamUrl, channelName) {
             const overlay = document.getElementById('streamPage');
             overlay.classList.add('active');
-            if (overlay.requestFullscreen) overlay.requestFullscreen().catch(() => {});
-            if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
             initiateFastPlayback(streamUrl, channelName);
         }
 
-        // =======================================================
-        // ULTRA FAST RAW PLAYBACK ENGINE (خێراترین مەکینەی لۆدکرن)
-        // =======================================================
         function initiateFastPlayback(streamUrl, channelName, event) {
             if (event) event.stopPropagation();
             triggerControlsDisplay();
@@ -641,75 +675,91 @@
             errorOverlay.style.display = 'none';
             loader.style.display = 'block';
 
-            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-            video.pause(); video.removeAttribute('src'); video.load();
-
-            if (Hls.isSupported()) {
-                // ڕێکخستنێن ئەوپەڕێ خێرایی بۆ ڤەکرنا ڕاستەوخۆ بێ گیرۆبوون
-                hlsInstance = new Hls({
-                    maxMaxBufferLength: 20, 
-                    maxBufferLength: 8, 
-                    enableWorker: true,
-                    lowLatencyMode: true, 
-                    startFragPrefetch: true,
-                    capLevelToPlayerSize: true
-                });
-                hlsInstance.loadSource(streamUrl);
-                hlsInstance.attachMedia(video);
-                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play().then(() => { loader.style.display = 'none'; }).catch(e => { console.log(e); });
-                });
-                hlsInstance.on(Hls.Events.ERROR, function(event, data) {
-                    if (data.fatal) {
-                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                            hlsInstance.startLoad();
-                        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                            hlsInstance.recoverMediaError();
-                        } else { 
-                            loader.style.display = 'none'; 
-                            errorOverlay.style.display = 'flex'; 
-                        }
-                    }
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = streamUrl;
-                video.addEventListener('loadedmetadata', () => {
-                    video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
-                });
-                video.addEventListener('error', () => {
-                    loader.style.display = 'none'; 
-                    errorOverlay.style.display = 'flex'; 
-                });
+            if (window.AndroidBridge) {
+                // EXOPLAYER ULTRA FAST HANDOFF
+                window.AndroidBridge.playInExo(streamUrl, channelName);
             } else {
-                loader.style.display = 'none'; errorOverlay.style.display = 'flex';
-            }
+                // WEB FALLBACK (IF OPENED IN BROWSER)
+                if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+                video.pause(); video.removeAttribute('src'); video.load();
 
-            video.onplaying = () => { loader.style.display = 'none'; };
-            video.onwaiting = () => { loader.style.display = 'block'; };
+                if (Hls.isSupported()) {
+                    hlsInstance = new Hls({
+                        maxMaxBufferLength: 20, 
+                        maxBufferLength: 8, 
+                        enableWorker: true,
+                        lowLatencyMode: true, 
+                        startFragPrefetch: true,
+                        capLevelToPlayerSize: true
+                    });
+                    hlsInstance.loadSource(streamUrl);
+                    hlsInstance.attachMedia(video);
+                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().then(() => { loader.style.display = 'none'; }).catch(e => { console.log(e); });
+                    });
+                    hlsInstance.on(Hls.Events.ERROR, function(event, data) {
+                        if (data.fatal) {
+                            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                                hlsInstance.startLoad();
+                            } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                                hlsInstance.recoverMediaError();
+                            } else { 
+                                loader.style.display = 'none'; 
+                                errorOverlay.style.display = 'flex'; 
+                            }
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = streamUrl;
+                    video.addEventListener('loadedmetadata', () => {
+                        video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
+                    });
+                    video.addEventListener('error', () => {
+                        loader.style.display = 'none'; 
+                        errorOverlay.style.display = 'flex'; 
+                    });
+                } else {
+                    loader.style.display = 'none'; errorOverlay.style.display = 'flex';
+                }
+            }
         }
+
+        document.getElementById('btnRetryPlay').addEventListener('click', () => {
+            initiateFastPlayback(currentPlayingUrl, "");
+        });
 
         function exitStreamOverlay(event) {
             if (event) event.stopPropagation();
             document.getElementById('streamPage').classList.remove('active');
             document.getElementById('errorModule').style.display = 'none';
-            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-            video.pause(); video.removeAttribute('src'); video.load();
-            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+            
+            if (window.AndroidBridge) {
+                window.AndroidBridge.stopExo();
+            } else {
+                if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+                video.pause(); video.removeAttribute('src'); video.load();
+            }
         }
 
         function toggleScreenOrientation(event) {
             if (event) event.stopPropagation();
-            const overlay = document.getElementById('streamPage');
-            if (!document.fullscreenElement) {
-                if (overlay.requestFullscreen) overlay.requestFullscreen();
-                if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+            if (window.AndroidBridge) {
+                // NATIVE ROTATION TENSIONING
+                const isLandscape = window.innerHeight < window.innerWidth;
+                window.AndroidBridge.toggleLandscape(!isLandscape);
             } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-                if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+                // WEB ROTATION FALLBACK
+                const overlay = document.getElementById('streamPage');
+                if (!document.fullscreenElement) {
+                    if (overlay.requestFullscreen) overlay.requestFullscreen();
+                    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+                }
             }
             triggerControlsDisplay();
         }
     </script>
 </body>
-                                                               </html>
+    </html>
