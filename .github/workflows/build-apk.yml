@@ -19,24 +19,17 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Setup Android AndroidX & ExoPlayer Project
+    - name: Setup Android Project Files
       run: |
         mkdir -p app/src/main/assets
         mkdir -p app/src/main/java/com/kurdtv/vip
         
-        # پشکنین و دڵنیابوون ژ فایلێ HTML
-        if [ -f "index.html" ]; then
-          cp index.html app/src/main/assets/index.html
-        elif [ -f "Kurdtv vip.html" ]; then
-          cp "Kurdtv vip.html" app/src/main/assets/index.html
-        else
-          echo "<!DOCTYPE html><html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
-        fi
+        # لێرە مەکینە دێ سەیری هەر فایلەکێ HTML کەت و کەتە index.html
+        find . -maxdepth 1 -name "*.html" -exec cp {} app/src/main/assets/index.html \;
         
-        # دروستکرنا فایلێ settings.gradle
+        # دروستکرنا فایلێن پێدڤی یێن ئەندرۆیدێ
         echo "include ':app'" > settings.gradle
         
-        # - دروستکرنا فایلێ build.gradle یێ سەرەکی
         cat << 'EOF' > build.gradle
         buildscript {
             repositories { google(); mavenCentral() }
@@ -45,7 +38,6 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        # دروستکرنا فایلێ app/build.gradle
         cat << 'EOF' > app/build.gradle
         plugins { id 'com.android.application' }
         android {
@@ -66,7 +58,6 @@ jobs:
         }
         EOF
         
-        # دروستکرنا فایلێ AndroidManifest
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -88,7 +79,6 @@ jobs:
         </manifest>
         EOF
         
-        # دروستکرنا فایلێ MainActivity
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -135,7 +125,6 @@ jobs:
         }
         EOF
 
-        # دروستکرنا فایلێ ExoPlayerActivity
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/ExoPlayerActivity.java
         package com.kurdtv.vip;
         import android.net.Uri;
