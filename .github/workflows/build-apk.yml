@@ -28,11 +28,12 @@ jobs:
         mkdir -p app/src/main/java/com/kurdtv/vip
         mkdir -p app/src/main/res/values
         mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/drawable
         
-        # گۆھۆڕینا فایلا پێشان گەهاندنێ
+        # دانانا فایلێ HTML
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
-        # فایلێن ڕێکخستنا ئەندرۆیدێ
+        # ڕێکخستنا سەرەکی یا ئەندرۆیدێ
         echo "android.useAndroidX=true" > gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
         echo "include ':app'" > settings.gradle
@@ -69,32 +70,94 @@ jobs:
         }
         EOF
         
-        # دیزاینێ نوو: یەکگرتنا WebView ل سەر ExoPlayer ب شێوەیەکێ زێڕین و شەفاف
+        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی (ئێکجار ڕێک و پێك)
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:orientation="vertical"
             android:background="#0A0E17">
 
-            <!-- پلیەرێ ExoPlayer ل ژێر لایەرێ WebView (بێ کۆنترۆلێن کەتوار) -->
             <com.google.android.exoplayer2.ui.StyledPlayerView
                 android:id="@+id/main_player_view"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_alignParentTop="true"
+                android:layout_height="240dp"
                 android:background="#000000"
-                android:visibility="gone"
                 app:surface_type="texture_view"
-                app:use_controller="false"/>
+                app:resize_mode="fit"
+                app:controller_layout_id="@layout/custom_exo_controls"/>
 
-            <!-- لایەرێ سەرەکی یێ WebView (هەموو شاشێ دگریت و یێ شەفافە) -->
             <WebView
                 android:id="@+id/main_web_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@android:color/transparent"/>
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="#0A0E17"/>
+        </LinearLayout>
+        EOF
+
+        # دروستکرنا دیزاینێ نوو یێ کۆنتڕۆلێن ExoPlayer ب شێوەیەکێ گەلەک جوان و ڕێک و پێك
+        cat << 'EOF' > app/src/main/res/layout/custom_exo_controls.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000">
+
+            <!-- دوکما سۆر یا دەرکەفتنێ (Exit) ل سەرێ ڕاستێ -->
+            <ImageButton
+                android:id="@+id/custom_close_btn"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="15dp"
+                android:layout_marginEnd="15dp"
+                android:background="@android:color/transparent"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:tint="#EF4444"
+                android:contentDescription="Close" />
+
+            <!-- دوکما Play/Pause ل ناڤەڕاستێ -->
+            <ImageButton
+                android:id="@id/exo_play_pause"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:layout_centerInParent="true"
+                android:background="@android:color/transparent"
+                android:src="@android:drawable/ic_media_play"
+                android:tint="#FFFFFF"
+                android:contentDescription="Play/Pause" />
+
+            <!-- دوکما تەمام شاشەکردنێ (Fullscreen) ل خوارێ سمتێ چەپێ -->
+            <ImageButton
+                android:id="@id/exo_fullscreen"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="15dp"
+                android:layout_marginBottom="15dp"
+                android:background="@android:color/transparent"
+                android:src="@android:drawable/ic_menu_zoom"
+                android:tint="#FFFFFF"
+                android:contentDescription="Fullscreen" />
+
+            <!-- نیشاندەرا Live و ناڤێ پەخشێ ڕاستەوخۆ -->
+            <TextView
+                android:id="@+id/live_indicator_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="22dp"
+                android:text="LIVE 🔴"
+                android:textColor="#EF4444"
+                android:textStyle="bold"
+                android:textSize="12sp" />
         </RelativeLayout>
         EOF
         
@@ -108,7 +171,7 @@ jobs:
                 android:label="Kurd TV VIP"
                 android:theme="@style/Theme.AppCompat.Light.NoActionBar"
                 android:usesCleartextTraffic="true">
-                <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden">
+                <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection">
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
                         <category android:name="android.intent.category.LAUNCHER" />
@@ -120,26 +183,30 @@ jobs:
         
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
-        import android.graphics.Color;
+        import android.content.pm.ActivityInfo;
         import android.net.Uri;
         import android.os.Bundle;
         import android.view.View;
+        import android.view.ViewGroup;
+        import android.view.WindowManager;
         import android.webkit.JavascriptInterface;
         import android.webkit.WebChromeClient;
         import android.webkit.WebSettings;
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
-        import android.widget.RelativeLayout;
+        import android.widget.ImageButton;
+        import android.widget.LinearLayout;
         import androidx.appcompat.app.AppCompatActivity;
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
-        import com.google.android.exoplayer2.Player;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
 
         public class MainActivity extends AppCompatActivity {
             private WebView wv;
             private ExoPlayer player;
             private StyledPlayerView playerView;
+            private ImageButton btnClosePlayer;
+            private boolean isFullscreen = false;
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -149,13 +216,30 @@ jobs:
                 playerView = findViewById(R.id.main_player_view);
                 wv = findViewById(R.id.main_web_view);
 
-                // دروستکرنا شەفافیەتێ داکو ڤیدیۆیا پشت شاشێ دەرکەڤیت
-                wv.setBackgroundColor(Color.TRANSPARENT);
+                // ل دەستپێکێ پلیەر بەرزەیە چونکی کەنالەک نەهاتییە هەلبژارتن
+                playerView.setVisibility(View.GONE);
 
-                // ئامادەکرنا ExoPlayer
                 player = new ExoPlayer.Builder(this).build();
                 playerView.setPlayer(player);
-                playerView.setUseController(false); // گرتنا کۆنترۆلێن کەتوار
+
+                // چاککردنا دوکما داخستنا کەتوار
+                btnClosePlayer = playerView.findViewById(R.id.custom_close_btn);
+                if (btnClosePlayer != null) {
+                    btnClosePlayer.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            stopAndHidePlayer();
+                        }
+                    });
+                }
+
+                // کۆنتڕۆلکرنا کاردانەوەیا دوکما تەمام شاشە
+                playerView.setFullscreenButtonClickListener(new StyledPlayerView.FullscreenButtonClickListener() {
+                    @Override
+                    public void onFullscreenButtonClick(boolean isFullScreen) {
+                        toggleFullscreen(!isFullscreen);
+                    }
+                });
 
                 WebSettings ws = wv.getSettings();
                 ws.setJavaScriptEnabled(true);
@@ -185,87 +269,71 @@ jobs:
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (player != null) {
-                                    player.stop();
-                                    player.clearMediaItems();
-                                }
-                                playerView.setVisibility(View.GONE);
-                                setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                            }
-                        });
-                    }
-
-                    @JavascriptInterface
-                    public void toggleLandscape(final boolean landscape) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (landscape) {
-                                    setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-                                } else {
-                                    setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                                }
+                                stopAndHidePlayer();
                             }
                         });
                     }
                 }, "AndroidBridge");
 
-                // گرێدانا کاردانەوەیێن پەخشی دگەڵ کۆنترۆلێن HTML
-                player.addListener(new Player.Listener() {
+                wv.setWebViewClient(new WebViewClient() {
                     @Override
-                    public void onPlaybackStateChanged(int playbackState) {
-                        if (playbackState == Player.STATE_BUFFERING) {
-                            wv.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    wv.evaluateJavascript("document.getElementById('loadingSpinner').style.display = 'block';", null);
-                                }
-                            });
-                        } else {
-                            wv.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    wv.evaluateJavascript("document.getElementById('loadingSpinner').style.display = 'none';", null);
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onPlayerError(com.google.android.exoplayer2.PlaybackException error) {
-                        wv.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                wv.evaluateJavascript("document.getElementById('loadingSpinner').style.display = 'none'; document.getElementById('errorModule').style.display = 'flex';", null);
-                            }
-                        });
+                    public void onPageFinished(WebView view, String url) {
+                        String js = "window.triggerStreamingOverlay = function(url, name) { window.AndroidBridge.playInExo(url, name); };" +
+                                    "window.exitStreamOverlay = function() { window.AndroidBridge.stopExo(); };";
+                        wv.evaluateJavascript(js, null);
                     }
                 });
-
-                wv.setWebViewClient(new WebViewClient());
                 wv.setWebChromeClient(new WebChromeClient());
                 wv.loadUrl("file:///android_asset/index.html");
             }
 
-            private void updatePlayerLayout(boolean isLandscape) {
-                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) playerView.getLayoutParams();
-                if (isLandscape) {
-                    params.width = RelativeLayout.LayoutParams.MATCH_PARENT;
-                    params.height = RelativeLayout.LayoutParams.MATCH_PARENT;
-                } else {
-                    params.width = RelativeLayout.LayoutParams.MATCH_PARENT;
-                    params.height = (int) (250 * getResources().getDisplayMetrics().density);
+            private void stopAndHidePlayer() {
+                if (player != null) {
+                    player.stop();
+                    player.clearMediaItems();
                 }
-                playerView.setLayoutParams(params);
+                playerView.setVisibility(View.GONE);
+                if (isFullscreen) {
+                    toggleFullscreen(false);
+                }
+            }
+
+            private void toggleFullscreen(boolean fullscreen) {
+                isFullscreen = fullscreen;
+                if (fullscreen) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    wv.setVisibility(View.GONE);
+                    
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                    );
+                    playerView.setLayoutParams(params);
+                } else {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    wv.setVisibility(View.VISIBLE);
+
+                    int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            heightPx
+                    );
+                    playerView.setLayoutParams(params);
+                }
             }
 
             @Override
-            public void onConfigurationChanged(android.content.res.Configuration newConfig) {
-                super.onConfigurationChanged(newConfig);
-                if (newConfig.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
-                    updatePlayerLayout(true);
-                } else if (newConfig.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT) {
-                    updatePlayerLayout(false);
+            public void onBackPressed() {
+                if (isFullscreen) {
+                    toggleFullscreen(false);
+                } else if (playerView.getVisibility() == View.VISIBLE) {
+                    stopAndHidePlayer();
+                } else if (wv.canGoBack()) {
+                    wv.goBack();
+                } else {
+                    super.onBackPressed();
                 }
             }
 
