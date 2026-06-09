@@ -29,10 +29,10 @@ jobs:
         mkdir -p app/src/main/res/values
         mkdir -p app/src/main/res/layout
         
-        # دانانا فایلێ کەنالان
+        # گۆھۆڕینا فایلا پێشان گەهاندنێ
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
-        # دروستکرنا فایلێن ڕێکخستنا ئەندرۆیدێ
+        # فایلێن ڕێکخستنا ئەندرۆیدێ
         echo "android.useAndroidX=true" > gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
         echo "include ':app'" > settings.gradle
@@ -69,27 +69,32 @@ jobs:
         }
         EOF
         
-        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ ل سەر و لیستا کەنالان ل خوارێ
+        # دیزاینێ نوو: یەکگرتنا WebView ل سەر ExoPlayer ب شێوەیەکێ زێڕین و شەفاف
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#0A0E17">
 
+            <!-- پلیەرێ ExoPlayer ل ژێر لایەرێ WebView (بێ کۆنترۆلێن کەتوار) -->
             <com.google.android.exoplayer2.ui.StyledPlayerView
                 android:id="@+id/main_player_view"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_alignParentTop="true"
-                android:background="#000000"/>
+                android:background="#000000"
+                android:visibility="gone"
+                app:surface_type="texture_view"
+                app:use_controller="false"/>
 
+            <!-- لایەرێ سەرەکی یێ WebView (هەموو شاشێ دگریت و یێ شەفافە) -->
             <WebView
                 android:id="@+id/main_web_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@id/main_player_view"
-                android:background="#0A0E17"/>
+                android:background="@android:color/transparent"/>
         </RelativeLayout>
         EOF
         
@@ -115,16 +120,20 @@ jobs:
         
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
+        import android.graphics.Color;
         import android.net.Uri;
         import android.os.Bundle;
+        import android.view.View;
         import android.webkit.JavascriptInterface;
         import android.webkit.WebChromeClient;
         import android.webkit.WebSettings;
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
+        import android.widget.RelativeLayout;
         import androidx.appcompat.app.AppCompatActivity;
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
+        import com.google.android.exoplayer2.Player;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
 
         public class MainActivity extends AppCompatActivity {
@@ -140,14 +149,19 @@ jobs:
                 playerView = findViewById(R.id.main_player_view);
                 wv = findViewById(R.id.main_web_view);
 
-                // دروستکرنا پلەیەی د ناڤ شاشێ دا
+                // دروستکرنا شەفافیەتێ داکو ڤیدیۆیا پشت شاشێ دەرکەڤیت
+                wv.setBackgroundColor(Color.TRANSPARENT);
+
+                // ئامادەکرنا ExoPlayer
                 player = new ExoPlayer.Builder(this).build();
                 playerView.setPlayer(player);
+                playerView.setUseController(false); // گرتنا کۆنترۆلێن کەتوار
 
                 WebSettings ws = wv.getSettings();
                 ws.setJavaScriptEnabled(true);
                 ws.setDomStorageEnabled(true);
                 ws.setAllowFileAccess(true);
+                ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                 
                 wv.addJavascriptInterface(new Object() {
                     @JavascriptInterface
@@ -156,6 +170,7 @@ jobs:
                             @Override
                             public void run() {
                                 if (url != null && !url.isEmpty()) {
+                                    playerView.setVisibility(View.VISIBLE);
                                     MediaItem mediaItem = MediaItem.fromUri(Uri.parse(url));
                                     player.setMediaItem(mediaItem);
                                     player.prepare();
@@ -164,17 +179,94 @@ jobs:
                             }
                         });
                     }
+
+                    @JavascriptInterface
+                    public void stopExo() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (player != null) {
+                                    player.stop();
+                                    player.clearMediaItems();
+                                }
+                                playerView.setVisibility(View.GONE);
+                                setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                            }
+                        });
+                    }
+
+                    @JavascriptInterface
+                    public void toggleLandscape(final boolean landscape) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (landscape) {
+                                    setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                                } else {
+                                    setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                                }
+                            }
+                        });
+                    }
                 }, "AndroidBridge");
 
-                wv.setWebViewClient(new WebViewClient() {
+                // گرێدانا کاردانەوەیێن پەخشی دگەڵ کۆنترۆلێن HTML
+                player.addListener(new Player.Listener() {
                     @Override
-                    public void onPageFinished(WebView view, String url) {
-                        String js = "window.triggerStreamingOverlay = function(url, name) { window.AndroidBridge.playInExo(url, name); };";
-                        wv.evaluateJavascript(js, null);
+                    public void onPlaybackStateChanged(int playbackState) {
+                        if (playbackState == Player.STATE_BUFFERING) {
+                            wv.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    wv.evaluateJavascript("document.getElementById('loadingSpinner').style.display = 'block';", null);
+                                }
+                            });
+                        } else {
+                            wv.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    wv.evaluateJavascript("document.getElementById('loadingSpinner').style.display = 'none';", null);
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onPlayerError(com.google.android.exoplayer2.PlaybackException error) {
+                        wv.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                wv.evaluateJavascript("document.getElementById('loadingSpinner').style.display = 'none'; document.getElementById('errorModule').style.display = 'flex';", null);
+                            }
+                        });
                     }
                 });
+
+                wv.setWebViewClient(new WebViewClient());
                 wv.setWebChromeClient(new WebChromeClient());
                 wv.loadUrl("file:///android_asset/index.html");
+            }
+
+            private void updatePlayerLayout(boolean isLandscape) {
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) playerView.getLayoutParams();
+                if (isLandscape) {
+                    params.width = RelativeLayout.LayoutParams.MATCH_PARENT;
+                    params.height = RelativeLayout.LayoutParams.MATCH_PARENT;
+                } else {
+                    params.width = RelativeLayout.LayoutParams.MATCH_PARENT;
+                    params.height = (int) (250 * getResources().getDisplayMetrics().density);
+                }
+                playerView.setLayoutParams(params);
+            }
+
+            @Override
+            public void onConfigurationChanged(android.content.res.Configuration newConfig) {
+                super.onConfigurationChanged(newConfig);
+                if (newConfig.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
+                    updatePlayerLayout(true);
+                } else if (newConfig.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT) {
+                    updatePlayerLayout(false);
+                }
             }
 
             @Override
