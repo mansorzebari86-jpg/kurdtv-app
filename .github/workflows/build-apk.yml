@@ -167,7 +167,7 @@ jobs:
                 android:label="Kurd TV VIP"
                 android:theme="@style/Theme.AppCompat.Light.NoActionBar"
                 android:usesCleartextTraffic="true"
-                android:hardwareAccelerated="true"> <!-- 🟢 چالاککرنا خێرایی گرافیکێ بۆ تەمامیا ئەپی -->
+                android:hardwareAccelerated="true">
                 <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection">
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
@@ -193,6 +193,7 @@ jobs:
         import android.webkit.WebViewClient;
         import android.widget.ImageButton;
         import android.widget.LinearLayout;
+        import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
@@ -213,7 +214,7 @@ jobs:
                 playerView = findViewById(R.id.main_player_view);
                 wv = findViewById(R.id.main_web_view);
 
-                // 🟢 ب هێز چالاککرنا خێراییێ ب هێزا گرافیکێ د ناڤ لایەرێ WebView دا
+                // ب هێز چالاککرنا خێرایی گرافیکێ
                 wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
                 playerView.setVisibility(View.GONE);
@@ -242,7 +243,11 @@ jobs:
                 ws.setJavaScriptEnabled(true);
                 ws.setDomStorageEnabled(true);
                 ws.setAllowFileAccess(true);
-                ws.setCacheMode(WebSettings.LOAD_DEFAULT);
+                
+                // 🟢 لادانا ب تەمامی یا بیردانکا کاتی (Cache) داکو کەنال دەستبەجێ ئۆنلاین نوو ببن
+                ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
+                wv.clearCache(true);
+                
                 ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                 
                 wv.addJavascriptInterface(new Object() {
@@ -280,10 +285,16 @@ jobs:
                                     "window.exitStreamOverlay = function() { window.AndroidBridge.stopExo(); };";
                         wv.evaluateJavascript(js, null);
                     }
+
+                    @Override
+                    public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                        Toast.makeText(MainActivity.this, "ئاریشە د گرێدانا ئینتەرنێتێ دا هەیە!", Toast.LENGTH_LONG).show();
+                    }
                 });
+                
                 wv.setWebChromeClient(new WebChromeClient());
                 
-                // لۆدکرنا لێنکێ تە یێ فەرمی یێ ئۆنلاین
+                // گرێدانا ئۆنلاین یا فەرمی
                 wv.loadUrl("https://mansorzebari86-jpg.github.io/kurdtv-app/");
             }
 
