@@ -33,6 +33,22 @@ jobs:
         # دانانا فایلێ ناوخۆیی وەک پاشکەوت
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
+        # 🟢 کۆنتڕۆلکرنا لۆگۆیێ فەرمی یێ بەرنامەی
+        if [ -f "logo.png" ]; then
+            cp logo.png app/src/main/res/drawable/ic_launcher.png
+            echo "Custom logo.png successfully set as App Icon!"
+        elif [ -f "logo.jpg" ]; then
+            cp logo.jpg app/src/main/res/drawable/ic_launcher.png
+            echo "Custom logo.jpg successfully set as App Icon!"
+        elif [ -f "logo.webp" ]; then
+            cp logo.webp app/src/main/res/drawable/ic_launcher.png
+            echo "Custom logo.webp successfully set as App Icon!"
+        else
+            # ئەگەر لۆگۆ نەهاتە دیتن، لۆگۆیەکێ پەسەند دێ هێتە دابەزاندن
+            curl -L -o app/src/main/res/drawable/ic_launcher.png "https://i.ibb.co/V0tMym0G/images.jpg"
+            echo "No custom logo found in root, using default fallback icon."
+        fi
+        
         # ڕێکخستنا سەرەکی یا ئەندرۆیدێ
         echo "android.useAndroidX=true" > gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
@@ -165,6 +181,8 @@ jobs:
             <application
                 android:allowBackup="true"
                 android:label="Kurd TV VIP"
+                android:icon="@drawable/ic_launcher"
+                android:roundIcon="@drawable/ic_launcher"
                 android:theme="@style/Theme.AppCompat.Light.NoActionBar"
                 android:usesCleartextTraffic="true"
                 android:hardwareAccelerated="true">
@@ -214,7 +232,6 @@ jobs:
                 playerView = findViewById(R.id.main_player_view);
                 wv = findViewById(R.id.main_web_view);
 
-                // ب هێز چالاککرنا خێرایی گرافیکێ
                 wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
                 playerView.setVisibility(View.GONE);
@@ -244,7 +261,6 @@ jobs:
                 ws.setDomStorageEnabled(true);
                 ws.setAllowFileAccess(true);
                 
-                // 🟢 لادانا ب تەمامی یا بیردانکا کاتی (Cache) داکو کەنال دەستبەجێ ئۆنلاین نوو ببن
                 ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
                 wv.clearCache(true);
                 
@@ -293,8 +309,6 @@ jobs:
                 });
                 
                 wv.setWebChromeClient(new WebChromeClient());
-                
-                // گرێدانا ئۆنلاین یا فەرمی
                 wv.loadUrl("https://mansorzebari86-jpg.github.io/kurdtv-app/");
             }
 
