@@ -1,9 +1,12 @@
-name: Build Kurd TV VIP APK (ExoPlayer Engine)
+name: Build Kurd TV VIP APK
 
 on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -23,11 +26,16 @@ jobs:
       run: |
         mkdir -p app/src/main/assets
         mkdir -p app/src/main/java/com/kurdtv/vip
+        mkdir -p app/src/main/res/values
+        mkdir -p app/src/main/res/layout
         
-        # لێرە مەکینە دێ سەیری هەر فایلەکێ HTML کەت و کەتە index.html
-        find . -maxdepth 1 -name "*.html" -exec cp {} app/src/main/assets/index.html \;
+        # دانانا فایلێ کەنالان
+        cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
-        # دروستکرنا فایلێن پێدڤی یێن ئەندرۆیدێ
+        # دروستکرنا فایلێن گرنگ یێن ئەندرۆیدێ
+        echo "android.useAndroidX=true" > gradle.properties
+        echo "android.enableJetifier=true" >> gradle.properties
+        
         echo "include ':app'" > settings.gradle
         
         cat << 'EOF' > build.gradle
@@ -48,7 +56,11 @@ jobs:
                 minSdk 21
                 targetSdk 34
                 versionCode 1
-                versionName "1.0.0-ExoPlayer"
+                versionName "1.0.0"
+            }
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
             }
         }
         dependencies {
@@ -66,7 +78,7 @@ jobs:
             <application
                 android:allowBackup="true"
                 android:label="Kurd TV VIP"
-                android:theme="@style/Theme.AppCompat.NoActionBar"
+                android:theme="@style/Theme.AppCompat.Light.NoActionBar"
                 android:usesCleartextTraffic="true">
                 <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden">
                     <intent-filter>
@@ -153,10 +165,12 @@ jobs:
                 player = new ExoPlayer.Builder(this).build();
                 playerView.setPlayer(player);
 
-                MediaItem mediaItem = MediaItem.fromUri(Uri.parse(streamUrl));
-                player.setMediaItem(mediaItem);
-                player.prepare();
-                player.play();
+                if (streamUrl != null && !streamUrl.isEmpty()) {
+                    MediaItem mediaItem = MediaItem.fromUri(Uri.parse(streamUrl));
+                    player.setMediaItem(mediaItem);
+                    player.prepare();
+                    player.play();
+                }
             }
 
             @Override
@@ -174,7 +188,7 @@ jobs:
         chmod +x gradlew
 
     - name: Build Premium ExoPlayer APK
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleDebug --stacktrace
 
     - name: Upload Finished ExoPlayer APK
       uses: actions/upload-artifact@v4
