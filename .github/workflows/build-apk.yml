@@ -30,7 +30,7 @@ jobs:
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/drawable
         
-        # دانانا فایلێ HTML
+        # دانانا فایلێ ناوخۆیی وەک پاشکەوت
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
         # ڕێکخستنا سەرەکی یا ئەندرۆیدێ
@@ -70,7 +70,7 @@ jobs:
         }
         EOF
         
-        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی (ئێکجار ڕێک و پێك)
+        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -98,7 +98,7 @@ jobs:
         </LinearLayout>
         EOF
 
-        # دروستکرنا دیزاینێ نوو یێ کۆنتڕۆلێن ExoPlayer ب شێوەیەکێ گەلەک جوان و ڕێک و پێك
+        # دروستکردنا کۆنتڕۆلێن ExoPlayer
         cat << 'EOF' > app/src/main/res/layout/custom_exo_controls.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -106,7 +106,6 @@ jobs:
             android:layout_height="match_parent"
             android:background="#80000000">
 
-            <!-- دوکما سۆر یا دەرکەفتنێ (Exit) ل سەرێ ڕاستێ -->
             <ImageButton
                 android:id="@+id/custom_close_btn"
                 android:layout_width="45dp"
@@ -120,7 +119,6 @@ jobs:
                 android:tint="#EF4444"
                 android:contentDescription="Close" />
 
-            <!-- دوکما Play/Pause ل ناڤەڕاستێ -->
             <ImageButton
                 android:id="@id/exo_play_pause"
                 android:layout_width="65dp"
@@ -131,7 +129,6 @@ jobs:
                 android:tint="#FFFFFF"
                 android:contentDescription="Play/Pause" />
 
-            <!-- دوکما تەمام شاشەکردنێ (Fullscreen) ل خوارێ سمتێ چەپێ -->
             <ImageButton
                 android:id="@id/exo_fullscreen"
                 android:layout_width="45dp"
@@ -145,7 +142,6 @@ jobs:
                 android:tint="#FFFFFF"
                 android:contentDescription="Fullscreen" />
 
-            <!-- نیشاندەرا Live و ناڤێ پەخشێ ڕاستەوخۆ -->
             <TextView
                 android:id="@+id/live_indicator_text"
                 android:layout_width="wrap_content"
@@ -216,13 +212,11 @@ jobs:
                 playerView = findViewById(R.id.main_player_view);
                 wv = findViewById(R.id.main_web_view);
 
-                // ل دەستپێکێ پلیەر بەرزەیە چونکی کەنالەک نەهاتییە هەلبژارتن
                 playerView.setVisibility(View.GONE);
 
                 player = new ExoPlayer.Builder(this).build();
                 playerView.setPlayer(player);
 
-                // چاککردنا دوکما داخستنا کەتوار
                 btnClosePlayer = playerView.findViewById(R.id.custom_close_btn);
                 if (btnClosePlayer != null) {
                     btnClosePlayer.setOnClickListener(new View.OnClickListener() {
@@ -233,7 +227,6 @@ jobs:
                     });
                 }
 
-                // کۆنتڕۆلکرنا کاردانەوەیا دوکما تەمام شاشە
                 playerView.setFullscreenButtonClickListener(new StyledPlayerView.FullscreenButtonClickListener() {
                     @Override
                     public void onFullscreenButtonClick(boolean isFullScreen) {
@@ -284,7 +277,9 @@ jobs:
                     }
                 });
                 wv.setWebChromeClient(new WebChromeClient());
-                wv.loadUrl("file:///android_asset/index.html");
+                
+                // لۆدکرنا لێنکێ تە یێ فەرمی یێ ئۆنلاین
+                wv.loadUrl("https://mansorzebari86-jpg.github.io/kurdtv-app/");
             }
 
             private void stopAndHidePlayer() {
