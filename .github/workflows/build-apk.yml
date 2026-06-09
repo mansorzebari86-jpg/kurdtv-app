@@ -166,7 +166,8 @@ jobs:
                 android:allowBackup="true"
                 android:label="Kurd TV VIP"
                 android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-                android:usesCleartextTraffic="true">
+                android:usesCleartextTraffic="true"
+                android:hardwareAccelerated="true"> <!-- 🟢 چالاککرنا خێرایی گرافیکێ بۆ تەمامیا ئەپی -->
                 <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection">
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
@@ -212,6 +213,9 @@ jobs:
                 playerView = findViewById(R.id.main_player_view);
                 wv = findViewById(R.id.main_web_view);
 
+                // 🟢 ب هێز چالاککرنا خێراییێ ب هێزا گرافیکێ د ناڤ لایەرێ WebView دا
+                wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
                 playerView.setVisibility(View.GONE);
 
                 player = new ExoPlayer.Builder(this).build();
@@ -238,6 +242,7 @@ jobs:
                 ws.setJavaScriptEnabled(true);
                 ws.setDomStorageEnabled(true);
                 ws.setAllowFileAccess(true);
+                ws.setCacheMode(WebSettings.LOAD_DEFAULT);
                 ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                 
                 wv.addJavascriptInterface(new Object() {
