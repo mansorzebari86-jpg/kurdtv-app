@@ -1,4 +1,4 @@
-name: Build Kurd TV VIP APK
+name: Build Kurd TV VIP APK (ExoPlayer Engine)
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Setup Android Project Files
+    - name: Setup Android AndroidX & ExoPlayer Project
       run: |
         mkdir -p app/src/main/assets
         mkdir -p app/src/main/java/com/kurdtv/vip
@@ -39,7 +39,7 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        # دروستکرنا فایلێ app/build.gradle
+        # دروستکرنا فایلێ app/build.gradle دگەل زێدەکرنا پەرتووکخانا ExoPlayer
         cat << 'EOF' > app/build.gradle
         plugins { id 'com.android.application' }
         android {
@@ -50,8 +50,14 @@ jobs:
                 minSdk 21
                 targetSdk 34
                 versionCode 1
-                versionName "1.0.0"
+                versionName "1.0.0-ExoPlayer"
             }
+        }
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
+            // لۆدکرنا مەکینەیا فەرمی یا ExoPlayer بۆ لێدەرێ HLS و کەنالان
+            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
         }
         EOF
         
@@ -64,54 +70,127 @@ jobs:
             <application
                 android:allowBackup="true"
                 android:label="Kurd TV VIP"
-                android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+                android:theme="@style/Theme.AppCompat.NoActionBar"
                 android:usesCleartextTraffic="true">
-                <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize">
+                <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden">
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
                         <category android:name="android.intent.category.LAUNCHER" />
                     </intent-filter>
                 </activity>
+                <activity android:name=".ExoPlayerActivity" android:exported="false" android:configChanges="orientation|screenSize|layoutDirection" android:screenOrientation="landscape" />
             </application>
         </manifest>
         EOF
         
-        # دروستکرنا فایلێ MainActivity
+        # دروستکرنا فایلێ سەرەکی یێ وێبێ دگەل پەیوەندییا پردێ (Bridge) بۆ ExoPlayer
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.app.Activity;
+        import android.content.Intent;
         import android.os.Bundle;
+        import android.webkit.JavascriptInterface;
         import android.webkit.WebChromeClient;
         import android.webkit.WebSettings;
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
-        public class MainActivity extends Activity {
+        import androidx.appcompat.app.AppCompatActivity;
+
+        public class MainActivity extends AppCompatActivity {
+            private WebView wv;
             @Override
             protected void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
-                WebView wv = new WebView(this);
+                wv = new WebView(this);
                 setContentView(wv);
                 WebSettings ws = wv.getSettings();
                 ws.setJavaScriptEnabled(true);
                 ws.setDomStorageEnabled(true);
-                ws.setMediaPlaybackRequiresUserGesture(false);
                 ws.setAllowFileAccess(true);
-                wv.setWebViewClient(new WebViewClient());
+                
+                // دروستکرنا پردەکێ د ناڤبەرا وێب و کۆدێ ئەندرۆید یێ ExoPlayer دا
+                wv.addJavascriptInterface(new Object() {
+                    @JavascriptInterface
+                    public void playInExo(String url, String name) {
+                        Intent intent = new Intent(MainActivity.this, ExoPlayerActivity.class);
+                        intent.putExtra("STREAM_URL", url);
+                        intent.putExtra("STREAM_NAME", name);
+                        startActivity(intent);
+                    }
+                }, "AndroidBridge");
+
+                wv.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public void onPageFinished(WebView view, String url) {
+                        // گۆڕینی لێدەرێ کۆن د ناڤ HTML دا بۆ مەکینەیا ExoPlayer د مۆبایلێ دا
+                        String js = "window.triggerStreamingOverlay = function(url, name) { window.AndroidBridge.playInExo(url, name); };";
+                        wv.evaluateJavascript(js, null);
+                    }
+                });
                 wv.setWebChromeClient(new WebChromeClient());
                 wv.loadUrl("file:///android_asset/index.html");
             }
         }
         EOF
+
+        # دروستکرنا لاپەرەکێ جودا و پرۆفێشناڵ یێ لێدەرێ فەرمی یێ ExoPlayer
+        cat << 'EOF' > app/src/main/java/com/kurdtv/vip/ExoPlayerActivity.java
+        package com.kurdtv.vip;
+        import android.net.Uri;
+        import android.os.Bundle;
+        import android.view.View;
+        import android.view.WindowManager;
+        import androidx.appcompat.app.AppCompatActivity;
+        import com.google.android.exoplayer2.ExoPlayer;
+        import com.google.android.exoplayer2.MediaItem;
+        import com.google.android.exoplayer2.ui.StyledPlayerView;
+
+        public class ExoPlayerActivity extends AppCompatActivity {
+            private ExoPlayer player;
+            private StyledPlayerView playerView;
+
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                
+                // شاشا تەمام و بێ ناڤ و نیشان بۆ لێدەرێ ڤیدیۆیێ
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                
+                playerView = new StyledPlayerView(this);
+                setContentView(playerView);
+
+                String streamUrl = getIntent().getStringExtra("STREAM_URL");
+
+                player = new ExoPlayer.Builder(this).build();
+                playerView.setPlayer(player);
+
+                MediaItem mediaItem = MediaItem.fromUri(Uri.parse(streamUrl));
+                player.setMediaItem(mediaItem);
+                player.prepare();
+                player.play();
+            }
+
+            @Override
+            protected void onDestroy() {
+                super.onDestroy();
+                if (player != null) {
+                    player.release();
+                    player = null;
+                }
+            }
+        }
+        EOF
         
-        # ئامادەکرنا gradle wrapper
+        # ڕێکخستنا کارێ Gradle
         gradle wrapper --gradle-version 8.5
         chmod +x gradlew
 
-    - name: Build Debug APK
+    - name: Build Premium ExoPlayer APK
       run: ./gradlew assembleDebug
 
-    - name: Upload Finished APK
+    - name: Upload Finished ExoPlayer APK
       uses: actions/upload-artifact@v4
       with:
-        name: KurdTV-VIP-APK
+        name: KurdTV-ExoPlayer-APK
         path: app/build/outputs/apk/debug/app-debug.apk
