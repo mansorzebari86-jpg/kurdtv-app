@@ -61,7 +61,31 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی
+        cat << 'EOF' > app/build.gradle
+        plugins { id 'com.android.application' }
+        android {
+            namespace 'com.kurdtv.vip'
+            compileSdk 34
+            defaultConfig {
+                applicationId "com.kurdtv.vip"
+                minSdk 21
+                targetSdk 34
+                versionCode 1
+                versionName "1.0.0"
+            }
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
+            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
+        }
+        EOF
+        
+        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ د ناڤ لایەرێ ٢٤٠ دا
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -75,7 +99,7 @@ jobs:
                 android:id="@+id/player_container"
                 android:layout_width="match_parent"
                 android:layout_height="240dp"
-                android:visibility="gone"> <!-- ب شێوەیەکێ دەستپێکی بەرزەیە -->
+                android:visibility="gone">
 
                 <!-- پلەیەر ب کۆنتڕۆلا کەتوار بۆ کارکرنا دوکمان -->
                 <com.google.android.exoplayer2.ui.StyledPlayerView
@@ -205,8 +229,8 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.FrameLayout;
-        import android.widget.LinearLayout;
+        import android.widget.FrameLayout; // 🟢 چارەسەریا فەرمی یا ناساندنا FrameLayout
+        import android.widget.LinearLayout; // 🟢 ناساندنا LinearLayout
         import android.widget.ProgressBar;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
@@ -220,7 +244,7 @@ jobs:
             private WebView wv;
             private ExoPlayer player;
             private StyledPlayerView playerView;
-            private FrameLayout playerContainer;
+            private FrameLayout playerContainer; 
             private ProgressBar loadingSpinner;
             private boolean isFullscreen = false;
 
@@ -306,13 +330,6 @@ jobs:
                 ws.setDomStorageEnabled(true);
                 ws.setAllowFileAccess(true);
                 
-                // 🟢 ڕێکخستنا فەرمی یا هۆست و تەلەفزیۆنێ د وێبێ دا بۆ لۆدکرنا بێ کێشە
-                ws.setUseWideViewPort(true);
-                ws.setLoadWithOverviewMode(true);
-                ws.setSupportZoom(false);
-                ws.setBuiltInZoomControls(false);
-                ws.setDisplayZoomControls(false);
-                
                 ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
                 wv.clearCache(true);
                 
@@ -325,10 +342,7 @@ jobs:
                             @Override
                             public void run() {
                                 if (url != null && !url.isEmpty()) {
-                                    // 🟢 گەرەنتی کرنا نیشاندانی تەمام یا لایەرێ دەرەکی یێ Gone
-                                    if (playerContainer != null) {
-                                        playerContainer.setVisibility(View.VISIBLE);
-                                    }
+                                    playerContainer.setVisibility(View.VISIBLE);
                                     playerView.setVisibility(View.VISIBLE);
                                     if (loadingSpinner != null) {
                                         loadingSpinner.setVisibility(View.VISIBLE);
@@ -425,7 +439,6 @@ jobs:
                 if (loadingSpinner != null) {
                     loadingSpinner.setVisibility(View.GONE);
                 }
-                // 🟢 بەستنەوەیا تەمام یا Gone داکو جهێ ڕەش ب تەمامی لاڕوات
                 if (playerContainer != null) {
                     playerContainer.setVisibility(View.GONE);
                 }
@@ -442,7 +455,8 @@ jobs:
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     wv.setVisibility(View.GONE);
                     
-                    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    // 🟢 لاندسکێپا نەیف د لایەرێ دەرەکی یێ LinearLayout دا د شاشێ دا
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                     );
@@ -452,8 +466,9 @@ jobs:
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     wv.setVisibility(View.VISIBLE);
 
+                    // 🟢 ڤەگەڕاندنا فەرمی یا لایەرێ دەرەکی یێ LinearLayout
                     int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
-                    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             heightPx
                     );
