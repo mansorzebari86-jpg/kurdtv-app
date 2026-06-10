@@ -143,8 +143,8 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
+        import android.widget.ProgressBar; // 🟢 چارەسەریا فەرمی یا ناساندنا ProgressBar بۆ لادانا خەلەتیێ
         import android.widget.LinearLayout;
-        import android.widget.ProgressBar;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
         import com.google.android.exoplayer2.DefaultLoadControl;
@@ -157,7 +157,7 @@ jobs:
             private WebView wv;
             private ExoPlayer player;
             private StyledPlayerView playerView;
-            private ProgressBar loadingSpinner;
+            private ProgressBar loadingSpinner; // 🟢 پێناسەکردنا دروست
             private boolean isFullscreen = false;
 
             @Override
@@ -177,6 +177,7 @@ jobs:
 
                 playerView.setVisibility(View.GONE);
 
+                // دروستکردنا مەکینەیا لۆدکرنا خێرا
                 DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                         .setBufferDurationsMs(1000, 4000, 800, 1000)
                         .build();
@@ -193,17 +194,25 @@ jobs:
                     @Override
                     public void onPlaybackStateChanged(int state) {
                         if (state == Player.STATE_BUFFERING) {
-                            loadingSpinner.setVisibility(View.VISIBLE);
+                            if (loadingSpinner != null) {
+                                loadingSpinner.setVisibility(View.VISIBLE);
+                            }
                         } else if (state == Player.STATE_READY) {
-                            loadingSpinner.setVisibility(View.GONE);
+                            if (loadingSpinner != null) {
+                                loadingSpinner.setVisibility(View.GONE);
+                            }
                         } else if (state == Player.STATE_ENDED) {
-                            loadingSpinner.setVisibility(View.GONE);
+                            if (loadingSpinner != null) {
+                                loadingSpinner.setVisibility(View.GONE);
+                            }
                         }
                     }
 
                     @Override
                     public void onPlayerError(com.google.android.exoplayer2.PlaybackException error) {
-                        loadingSpinner.setVisibility(View.GONE);
+                        if (loadingSpinner != null) {
+                            loadingSpinner.setVisibility(View.GONE);
+                        }
                         wv.post(new Runnable() {
                             @Override
                             public void run() {
@@ -231,7 +240,9 @@ jobs:
                             public void run() {
                                 if (url != null && !url.isEmpty()) {
                                     playerView.setVisibility(View.VISIBLE);
-                                    loadingSpinner.setVisibility(View.VISIBLE);
+                                    if (loadingSpinner != null) {
+                                        loadingSpinner.setVisibility(View.VISIBLE);
+                                    }
 
                                     MediaItem mediaItem = MediaItem.fromUri(Uri.parse(url));
                                     player.setMediaItem(mediaItem);
@@ -331,7 +342,9 @@ jobs:
                     player.stop();
                     player.clearMediaItems();
                 }
-                loadingSpinner.setVisibility(View.GONE);
+                if (loadingSpinner != null) {
+                    loadingSpinner.setVisibility(View.GONE);
+                }
                 playerView.setVisibility(View.GONE);
                 if (isFullscreen) {
                     toggleFullscreen(false);
