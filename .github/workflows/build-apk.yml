@@ -85,7 +85,7 @@ jobs:
         }
         EOF
         
-        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی
+        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ، چەرخا لۆدکرنێ، و لایەرێ خەلەتییا نەیف (٨ چرکە)
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -95,16 +95,69 @@ jobs:
             android:orientation="vertical"
             android:background="#0A0E17">
 
-            <!-- 🟢 زێدەکرنا Timeout بۆ کۆنتڕۆلێن پلەیەری (دابڕانا ئۆتۆماتیکی د ٣ چرکەدا) -->
-            <com.google.android.exoplayer2.ui.StyledPlayerView
-                android:id="@+id/main_player_view"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="240dp"
-                android:background="#000000"
-                app:surface_type="texture_view"
-                app:resize_mode="fit"
-                app:show_timeout="3000" 
-                app:controller_layout_id="@layout/custom_exo_controls"/>
+                android:layout_height="240dp">
+
+                <!-- پلەیەرێ ExoPlayer ب بێ timeout یان تێکدانا play/pause -->
+                <com.google.android.exoplayer2.ui.StyledPlayerView
+                    android:id="@+id/main_player_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#000000"
+                    app:surface_type="texture_view"
+                    app:resize_mode="fit"
+                    app:use_controller="false"/>
+
+                <!-- چەرخا لۆدکرنا نەیف (Buffering Spinner) -->
+                <ProgressBar
+                    android:id="@+id/native_loading_spinner"
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:layout_gravity="center"
+                    android:indeterminateTint="#4da6ff"
+                    android:visibility="gone" />
+
+                <!-- 🟢 لایەرێ خەلەتییا نەیف یێ ٨ چرکە (ب تەمامی وەک دیزاینێ تە یێ سۆر) -->
+                <LinearLayout
+                    android:id="@+id/native_error_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="#000000"
+                    android:visibility="gone"
+                    android:padding="15dp">
+
+                    <!-- نیشانا هۆشداریێ یا سێگۆشە یا سپی -->
+                    <ImageView
+                        android:layout_width="65dp"
+                        android:layout_height="65dp"
+                        android:src="@android:drawable/ic_dialog_alert"
+                        android:tint="#FFFFFF"
+                        android:contentDescription="Warning" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="پەخشی ئەم کەناڵە وەستاوە"
+                        android:textColor="#FFFFFF"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="15dp" />
+
+                    <!-- دوکما داخستنێ یا بازنەیی یا نوو ب ڕەنگێ سۆر -->
+                    <Button
+                        android:id="@+id/native_btn_error_close"
+                        android:layout_width="140dp"
+                        android:layout_height="48dp"
+                        android:text="داخستن"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#F43F5E"
+                        android:layout_marginTop="20dp"
+                        android:stateListAnimator="@null" />
+                </LinearLayout>
+            </FrameLayout>
 
             <WebView
                 android:id="@+id/main_web_view"
@@ -114,72 +167,6 @@ jobs:
                 android:background="#0A0E17"/>
         </LinearLayout>
         EOF
-
-        # دروستکردنا کۆنتڕۆلێن ExoPlayer ب بێ دوکما play یا تێکدەر ل نیڤەکی
-        cat << 'EOF' > app/src/main/res/layout/custom_exo_controls.xml
-        <?xml version="1.0" encoding="utf-8"?>
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#60000000">
-
-            <!-- دوکما سۆر یا دەرکەفتنێ (Exit) ل سەرێ ڕاستێ -->
-            <ImageButton
-                android:id="@+id/custom_close_btn"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentEnd="true"
-                android:layout_marginTop="15dp"
-                android:layout_marginEnd="15dp"
-                android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
-                android:tint="#EF4444"
-                android:contentDescription="Close" />
-
-            <!-- 🟢 گۆڕینی دیزاینێ دوکما Play/Pause (ب تەنێ ل سەرێ چەپێ دگریت، ناڤەڕاست هێلا تەمام پاقژە) -->
-            <ImageButton
-                android:id="@id/exo_play_pause"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true"
-                android:layout_marginTop="15dp"
-                android:layout_marginStart="15dp"
-                android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_media_play"
-                android:tint="#FFFFFF"
-                android:contentDescription="Play/Pause" />
-
-            <!-- دوکما تەمام شاشەکردنێ (Fullscreen) ل خوارێ سمتێ چەپێ -->
-            <ImageButton
-                android:id="@id/exo_fullscreen"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="15dp"
-                android:layout_marginBottom="15dp"
-                android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_zoom"
-                android:tint="#FFFFFF"
-                android:contentDescription="Fullscreen" />
-
-            <!-- نیشاندەرا Live و ناڤێ پەخشێ ڕاستەوخۆ -->
-            <TextView
-                android:id="@+id/live_indicator_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="15dp"
-                android:layout_marginBottom="22dp"
-                android:text="LIVE 🔴"
-                android:textColor="#EF4444"
-                android:textStyle="bold"
-                android:textSize="12sp" />
-        </RelativeLayout>
-        EOF
         
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
@@ -187,7 +174,6 @@ jobs:
             <uses-permission android:name="android.permission.INTERNET" />
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
             
-            <!-- 🟢 ڕێکخستنا فەرمی یا هۆست و پشتگیرییا تەمام یا Android TV -->
             <uses-feature android:name="android.software.leanback" android:required="false" />
             <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
@@ -204,7 +190,6 @@ jobs:
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
                         <category android:name="android.intent.category.LAUNCHER" />
-                        <!-- 🟢 پشتگیرییا لانچەرێ فەرمی یێ تەلەفزیۆنێ (Leanback Launcher) -->
                         <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
                     </intent-filter>
                 </activity>
@@ -219,6 +204,7 @@ jobs:
         import android.content.pm.ActivityInfo;
         import android.net.Uri;
         import android.os.Bundle;
+        import android.os.Handler;
         import android.view.View;
         import android.view.ViewGroup;
         import android.view.WindowManager;
@@ -228,21 +214,34 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.ImageButton;
+        import android.widget.Button;
         import android.widget.LinearLayout;
+        import android.widget.ProgressBar;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
         import com.google.android.exoplayer2.DefaultLoadControl;
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
+        import com.google.android.exoplayer2.Player;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
 
         public class MainActivity extends AppCompatActivity {
             private WebView wv;
             private ExoPlayer player;
             private StyledPlayerView playerView;
-            private ImageButton btnClosePlayer;
+            private ProgressBar loadingSpinner;
+            private LinearLayout errorLayout;
+            private Button btnErrorClose;
             private boolean isFullscreen = false;
+
+            // 🟢 هاندلەرێ تایبەت بۆ بژاردەیا ٨ چرکە یا خەلەتییێ
+            private final Handler timeoutHandler = new Handler();
+            private final Runnable timeoutRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    showNativeError();
+                }
+            };
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -251,45 +250,60 @@ jobs:
 
                 playerView = findViewById(R.id.main_player_view);
                 wv = findViewById(R.id.main_web_view);
+                loadingSpinner = findViewById(R.id.native_loading_spinner);
+                errorLayout = findViewById(R.id.native_error_layout);
+                btnErrorClose = findViewById(R.id.native_btn_error_close);
 
-                // ب هێز چالاککرنا خێرایی گرافیکێ
                 wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
-                // 🟢 گرێدانا فەرمی یا تەلەفزیۆنێ بۆ ڕێگەپێدانا کلیکان دگەڵ کۆنترۆلا دوور (D-pad focus enablement)
                 wv.setFocusable(true);
                 wv.setFocusableInTouchMode(true);
                 wv.requestFocus();
 
                 playerView.setVisibility(View.GONE);
 
-                // 🟢 دروستکردنا مەکینەیا لۆدکرنا خێرا (IPTV Ultra Fast Load Control)
                 DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-                        .setBufferDurationsMs(
-                                1000,  // minBufferMs (لۆدکرن تەنێ د ١ چرکەدا دەست پێ دکەت)
-                                4000,  // maxBufferMs
-                                800,   // bufferForPlaybackMs
-                                1000   // bufferForPlaybackAfterRebufferMs
-                        ).build();
+                        .setBufferDurationsMs(1000, 4000, 800, 1000)
+                        .build();
 
                 player = new ExoPlayer.Builder(this)
                         .setLoadControl(loadControl)
                         .build();
                 playerView.setPlayer(player);
 
-                btnClosePlayer = playerView.findViewById(R.id.custom_close_btn);
-                if (btnClosePlayer != null) {
-                    btnClosePlayer.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            stopAndHidePlayer();
-                        }
-                    });
-                }
+                // 🟢 لادانا کەتوارا دوکما play و چاودێریکرنا ب بێ دوکمێن ناوەڕاستێ
+                player.setPlayWhenReady(true); 
 
-                playerView.setFullscreenButtonClickListener(new StyledPlayerView.FullscreenButtonClickListener() {
+                btnErrorClose.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onFullscreenButtonClick(boolean isFullScreen) {
-                        toggleFullscreen(!isFullscreen);
+                    public void onClick(View v) {
+                        stopAndHidePlayer();
+                    }
+                });
+
+                // 🟢 چاودێریکرنا لۆدکرن و ڕاوەستاندنا کەنالی بۆ گۆڕینی لایەرێ ٨ چرکە
+                player.addListener(new Player.Listener() {
+                    @Override
+                    public void onPlaybackStateChanged(int state) {
+                        if (state == Player.STATE_BUFFERING) {
+                            loadingSpinner.setVisibility(View.VISIBLE);
+                            errorLayout.setVisibility(View.GONE);
+                            
+                            // دەستپێکرنا ژمارەکا نوو بۆ ٨ چرکەیان
+                            timeoutHandler.removeCallbacks(timeoutRunnable);
+                            timeoutHandler.postDelayed(timeoutRunnable, 8000);
+                        } else if (state == Player.STATE_READY) {
+                            loadingSpinner.setVisibility(View.GONE);
+                            errorLayout.setVisibility(View.GONE);
+                            timeoutHandler.removeCallbacks(timeoutRunnable);
+                        } else if (state == Player.STATE_ENDED) {
+                            loadingSpinner.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onPlayerError(com.google.android.exoplayer2.PlaybackException error) {
+                        showNativeError();
                     }
                 });
 
@@ -298,7 +312,6 @@ jobs:
                 ws.setDomStorageEnabled(true);
                 ws.setAllowFileAccess(true);
                 
-                // لادانا ب تەمامی یا بیردانکا کاتی داکو کەنال دەستبەجێ ئۆنلاین نوو ببن
                 ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
                 wv.clearCache(true);
                 
@@ -311,12 +324,16 @@ jobs:
                             @Override
                             public void run() {
                                 if (url != null && !url.isEmpty()) {
+                                    errorLayout.setVisibility(View.GONE);
                                     playerView.setVisibility(View.VISIBLE);
+                                    
+                                    // دەستپێکردنا لۆدکرنێ دگەڵ چاودێریا ٨ چرکەیی
+                                    loadingSpinner.setVisibility(View.VISIBLE);
+                                    timeoutHandler.removeCallbacks(timeoutRunnable);
+                                    timeoutHandler.postDelayed(timeoutRunnable, 8000);
+
                                     MediaItem mediaItem = MediaItem.fromUri(Uri.parse(url));
                                     player.setMediaItem(mediaItem);
-                                    
-                                    // 🟢 ئۆتۆماتیکی ڤیدیۆ دەست پێ دکەت ب بێ پێویستی ب کلیک ل سەر play
-                                    player.setPlayWhenReady(true); 
                                     player.prepare();
                                     player.play();
                                 }
@@ -398,11 +415,29 @@ jobs:
                 wv.loadUrl("https://mansorzebari86-jpg.github.io/kurdtv-app/");
             }
 
+            // 🟢 نیشاندانی شاشەیا سۆر یا خەلەتییێ ب ڕێکارێن نەیف
+            private void showNativeError() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        timeoutHandler.removeCallbacks(timeoutRunnable);
+                        loadingSpinner.setVisibility(View.GONE);
+                        errorLayout.setVisibility(View.VISIBLE);
+                        if (player != null) {
+                            player.stop();
+                        }
+                    }
+                });
+            }
+
             private void stopAndHidePlayer() {
+                timeoutHandler.removeCallbacks(timeoutRunnable);
                 if (player != null) {
                     player.stop();
                     player.clearMediaItems();
                 }
+                loadingSpinner.setVisibility(View.GONE);
+                errorLayout.setVisibility(View.GONE);
                 playerView.setVisibility(View.GONE);
                 if (isFullscreen) {
                     toggleFullscreen(false);
@@ -459,6 +494,7 @@ jobs:
             @Override
             protected void onDestroy() {
                 super.onDestroy();
+                timeoutHandler.removeCallbacks(timeoutRunnable);
                 if (player != null) {
                     player.release();
                     player = null;
