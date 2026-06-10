@@ -85,7 +85,7 @@ jobs:
         }
         EOF
         
-        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ د ناڤ لایەرێ ٢٤٠ دا
+        # 🟢 نووکرن: زێدەکرنا ID بۆ لایەرێ دەرەکی (player_container) و گۆڕینی لادانا دەستپێکی بۆ gone
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -96,8 +96,10 @@ jobs:
             android:background="#0A0E17">
 
             <FrameLayout
+                android:id="@+id/player_container"
                 android:layout_width="match_parent"
-                android:layout_height="240dp">
+                android:layout_height="240dp"
+                android:visibility="gone"> <!-- ب شێوەیەکێ دەستپێکی بەرزەیە -->
 
                 <!-- پلەیەر ب کۆنتڕۆلا کەتوار بۆ کارکرنا دوکمان -->
                 <com.google.android.exoplayer2.ui.StyledPlayerView
@@ -227,9 +229,9 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.ImageButton;
+        import android.widget.FrameLayout; // 🟢 ڕێگریکردن د خەلەتیێن بونیاتنانێ دا
         import android.widget.LinearLayout;
-        import android.widget.ProgressBar; // 🟢 لۆدکردنا دروست بۆ چاککردنەوەیا ب تەمامی یا خەلەتییێ
+        import android.widget.ProgressBar;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
         import com.google.android.exoplayer2.DefaultLoadControl;
@@ -242,6 +244,7 @@ jobs:
             private WebView wv;
             private ExoPlayer player;
             private StyledPlayerView playerView;
+            private FrameLayout playerContainer; // 🟢 لایەرێ ناوخۆیی یێ دەرەک بۆ کۆنترۆلکرنا فەرمی
             private ProgressBar loadingSpinner;
             private boolean isFullscreen = false;
 
@@ -251,6 +254,7 @@ jobs:
                 setContentView(R.layout.activity_main);
 
                 playerView = findViewById(R.id.main_player_view);
+                playerContainer = findViewById(R.id.player_container);
                 wv = findViewById(R.id.main_web_view);
                 loadingSpinner = findViewById(R.id.native_loading_spinner);
 
@@ -261,8 +265,9 @@ jobs:
                 wv.setFocusableInTouchMode(true);
                 wv.requestFocus();
 
-                playerView.setVisibility(View.GONE);
+                playerContainer.setVisibility(View.GONE);
 
+                // مەکینەیا لۆدکرنا خێرا
                 DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                         .setBufferDurationsMs(1000, 4000, 800, 1000)
                         .build();
@@ -274,6 +279,7 @@ jobs:
 
                 player.setPlayWhenReady(true); 
 
+                // دەستنیشانکرنا کلیکێ ل سەر دوکما سور یا کەتوارا دەرچوونێ ژ بەخشکرنێ
                 View closeBtn = playerView.findViewById(R.id.custom_close_btn);
                 if (closeBtn != null) {
                     closeBtn.setOnClickListener(new View.OnClickListener() {
@@ -335,6 +341,7 @@ jobs:
                             @Override
                             public void run() {
                                 if (url != null && !url.isEmpty()) {
+                                    playerContainer.setVisibility(View.VISIBLE);
                                     playerView.setVisibility(View.VISIBLE);
                                     if (loadingSpinner != null) {
                                         loadingSpinner.setVisibility(View.VISIBLE);
@@ -431,6 +438,7 @@ jobs:
                 if (loadingSpinner != null) {
                     loadingSpinner.setVisibility(View.GONE);
                 }
+                playerContainer.setVisibility(View.GONE);
                 playerView.setVisibility(View.GONE);
                 if (isFullscreen) {
                     toggleFullscreen(false);
@@ -444,22 +452,24 @@ jobs:
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     wv.setVisibility(View.GONE);
                     
+                    // 🟢 لاندسکێپا نەیف ب بێ چو کێشە ل سەر لایەرێ دەرەکی (playerContainer)
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                     );
-                    playerView.setLayoutParams(params);
+                    playerContainer.setLayoutParams(params);
                 } else {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     wv.setVisibility(View.VISIBLE);
 
+                    // 🟢 گەڕاندنەوەیا فەرمی بۆ شاشا ٢٤٠ ل سەرێ شاشێ
                     int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             heightPx
                     );
-                    playerView.setLayoutParams(params);
+                    playerContainer.setLayoutParams(params);
                 }
             }
 
