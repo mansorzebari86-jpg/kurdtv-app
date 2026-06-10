@@ -61,31 +61,7 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        cat << 'EOF' > app/build.gradle
-        plugins { id 'com.android.application' }
-        android {
-            namespace 'com.kurdtv.vip'
-            compileSdk 34
-            defaultConfig {
-                applicationId "com.kurdtv.vip"
-                minSdk 21
-                targetSdk 34
-                versionCode 1
-                versionName "1.0.0"
-            }
-            compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
-            }
-        }
-        dependencies {
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-            implementation 'com.google.android.material:material:1.11.0'
-            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
-        }
-        EOF
-        
-        # 🟢 نووکرن: زێدەکرنا ID بۆ لایەرێ دەرەکی (player_container) و گۆڕینی لادانا دەستپێکی بۆ gone
+        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -99,7 +75,7 @@ jobs:
                 android:id="@+id/player_container"
                 android:layout_width="match_parent"
                 android:layout_height="240dp"
-                android:visibility="gone"> <!-- ب شێوەیەکێ دەستپێکی بەرزەیە -->
+                android:visibility="gone">
 
                 <!-- پلەیەر ب کۆنتڕۆلا کەتوار بۆ کارکرنا دوکمان -->
                 <com.google.android.exoplayer2.ui.StyledPlayerView
@@ -229,7 +205,7 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.FrameLayout; // 🟢 ڕێگریکردن د خەلەتیێن بونیاتنانێ دا
+        import android.widget.FrameLayout;
         import android.widget.LinearLayout;
         import android.widget.ProgressBar;
         import android.widget.Toast;
@@ -244,7 +220,7 @@ jobs:
             private WebView wv;
             private ExoPlayer player;
             private StyledPlayerView playerView;
-            private FrameLayout playerContainer; // 🟢 لایەرێ ناوخۆیی یێ دەرەک بۆ کۆنترۆلکرنا فەرمی
+            private FrameLayout playerContainer;
             private ProgressBar loadingSpinner;
             private boolean isFullscreen = false;
 
@@ -267,10 +243,14 @@ jobs:
 
                 playerContainer.setVisibility(View.GONE);
 
-                // مەکینەیا لۆدکرنا خێرا
+                // 🟢 نووکرن: بلترین ئاستێ خێراکرنا لۆدکرنێ (Autoplay ل ژێر ٥٠٠ ملی چرکە)
                 DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-                        .setBufferDurationsMs(1000, 4000, 800, 1000)
-                        .build();
+                        .setBufferDurationsMs(
+                                800,   // minBufferMs
+                                3000,  // maxBufferMs
+                                500,   // bufferForPlaybackMs (لۆدکرن د نیڤ چرکەیەکێ دا)
+                                800    // bufferForPlaybackAfterRebufferMs
+                        ).build();
 
                 player = new ExoPlayer.Builder(this)
                         .setLoadControl(loadControl)
@@ -279,7 +259,6 @@ jobs:
 
                 player.setPlayWhenReady(true); 
 
-                // دەستنیشانکرنا کلیکێ ل سەر دوکما سور یا کەتوارا دەرچوونێ ژ بەخشکرنێ
                 View closeBtn = playerView.findViewById(R.id.custom_close_btn);
                 if (closeBtn != null) {
                     closeBtn.setOnClickListener(new View.OnClickListener() {
@@ -452,7 +431,6 @@ jobs:
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     wv.setVisibility(View.GONE);
                     
-                    // 🟢 لاندسکێپا نەیف ب بێ چو کێشە ل سەر لایەرێ دەرەکی (playerContainer)
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
@@ -463,7 +441,6 @@ jobs:
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     wv.setVisibility(View.VISIBLE);
 
-                    // 🟢 گەڕاندنەوەیا فەرمی بۆ شاشا ٢٤٠ ل سەرێ شاشێ
                     int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
