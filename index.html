@@ -408,6 +408,9 @@
             { name: "Zed tv plus", type: "movies", logo: "https://i.ibb.co/Swzck06K/images-30.jpg", stream: "http://109.71.252.138/Zedplus/tracks-v1a1/mono.m3u8?token=yusfstore3434fyusfstore3434yusfstore3434yusfstore3434yusfstore3434fwestrqwerwefwefrwefwefwes&type=live" },
             { name: "Stv", type: "movies", logo: "https://i.ibb.co/TqkhYHsV/Screenshot-20260610-023101.jpg", stream: "https://live20.bozztv.com/giatv/giatv-stv/stvone/chunks.m3u8" },
             { name: "Infinity tv", type: "movies", logo: "https://i.ibb.co/zTjtwBb1/IMG-20260610-023434-073.jpg", stream: "https://cdn.karwan.tv/infinity-tv/tracks-v1a1/mono.m3u8" },
+            { name: "Befrin TV", type: "movies", logo: "https://i.ibb.co/7JJDV37c/Screenshot-20260610-133555.jpg", stream: "https://cdn.karwan.tv/befrin-tv/index.m3u8" },
+            { name: "Derin TV", type: "movies", logo: "https://i.ibb.co/M5y1qkqn/Screenshot-20260610-133919.jpg", stream: "http://baskhd.ddns.net:40/live/Derin/index.m3u8?checkedby:Halabja88" },
+            { name: "Jamawar TV", type: "movies", logo: "https://i.ibb.co/nNFkYRgZ/images-31.jpg", stream: "https://avr.host247.net/JamawarTv/JamawarTv/playlist.m3u8" },
             
             // مۆسیقا و قورئان (Music & Quran)
             { name: "Mix Kurdish", type: "music", logo: "https://i.ibb.co/mr9SgBKJ/images-8.jpg", stream: "http://avrstream.com:1935/live/Mix-kurdy/playlist.m3u8" },
@@ -437,6 +440,7 @@
             setTimeout(() => { container.style.opacity = '0'; }, 3000);
         }
 
+        // ... Keep exactly same functions below
         function createCard(item) {
             const displayType = item.type === 'music' ? 'مۆسیقا' : item.type;
             return `
@@ -522,13 +526,10 @@
             });
         }
 
-        // 🟢 HYBRID PLAYBACK DETECTOR (پلیەرێ دوولایەنە بۆ ئەپی و بۆ کڕۆمێ)
         function triggerStreamingOverlay(streamUrl, channelName) {
             if (window.AndroidBridge) {
-                // ١. ئەگەر د ناڤ ئەپڵیکەیشنێ دابیت (ExoPlayer کار پێ دکەت)
                 window.AndroidBridge.playInExo(streamUrl, channelName);
             } else {
-                // ٢. ئەگەر د ناڤ کڕۆمێ دابیت (پلەیەرێ مینی د لێگەڕۆکێ دا ڤەدکەت)
                 const overlay = document.getElementById('streamPage');
                 overlay.classList.add('active');
                 setScrollerActiveHighlight(channelName);
@@ -536,7 +537,6 @@
             }
         }
 
-        // 🟢 HLS.js PLAYBACK ENGINE FOR WEB BROWSER ONLY
         function initiateFastPlayback(streamUrl, channelName, event) {
             if (event) event.stopPropagation();
             setScrollerActiveHighlight(channelName);
@@ -593,4 +593,4 @@
         }
     </script>
 </body>
-    </html>
+                </html>
