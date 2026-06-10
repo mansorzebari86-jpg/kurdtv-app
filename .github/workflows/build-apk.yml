@@ -61,7 +61,7 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        # 🟢 نووکرن: ڤیدیۆ دبیتە تەمام شاشە دگەڵ WebView د سەر دا ب شەفافیەت و لۆدکرن ل بنی شاشێ
+        # ڤیدیۆ دبیتە تەمام شاشە دگەڵ WebView د سەر دا ب شەفافیەت و لۆدکرن ل بنی شاشێ
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -134,7 +134,6 @@ jobs:
         import android.content.pm.ActivityInfo;
         import android.net.Uri;
         import android.os.Bundle;
-        import android.os.Handler;
         import android.view.View;
         import android.view.ViewGroup;
         import android.view.WindowManager;
@@ -187,7 +186,7 @@ jobs:
                         .build();
                 playerView.setPlayer(player);
 
-                // 🟢 ئۆتۆپلەی فەرمی بێ دوکما play یا کەتوار ل ناڤەڕاستێ
+                // ئۆتۆپلەی فەرمی بێ دوکما play یا کەتوار ل ناڤەڕاستێ
                 player.setPlayWhenReady(true); 
 
                 player.addListener(new Player.Listener() {
@@ -208,7 +207,6 @@ jobs:
                         wv.post(new Runnable() {
                             @Override
                             public void run() {
-                                // کارپێکرنا خەلەتییا ئۆنلاین د سەر و چاڤێن HTML دا ب بێ ڕاوەستاندن
                                 wv.evaluateJavascript("triggerNotification('ببوورە! ئەڤ کەناڵە کار ناکەت یان هێلا ئینتەرنێتێ لاوازە.');", null);
                             }
                         });
