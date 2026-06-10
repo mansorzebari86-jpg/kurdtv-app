@@ -33,7 +33,7 @@ jobs:
         # دانانا فایلێ ناوخۆیی وەک پاشکەوت
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
-        # کۆنتڕۆلکرنا لۆگۆیێ فەرمی یێ بەرنامەی
+        # 🟢 کۆنتڕۆلکرنا لۆگۆیێ فەرمی یێ بەرنامەی (PNG یێ فەرمی بۆ لادانا خەلەتیێن AAPT2)
         if [ -f "logo.png" ]; then
             cp logo.png app/src/main/res/drawable/ic_launcher.png
             echo "Custom logo.png successfully set as App Icon!"
@@ -44,8 +44,9 @@ jobs:
             cp logo.webp app/src/main/res/drawable/ic_launcher.png
             echo "Custom logo.webp successfully set as App Icon!"
         else
-            curl -L -o app/src/main/res/drawable/ic_launcher.png "https://i.ibb.co/V0tMym0G/images.jpg"
-            echo "No custom logo found in root, using default fallback icon."
+            # دابەزاندنا لۆگۆیەکێ فەرمی و ڕاستەقینە یێ PNG یێ بێ خەلەتی
+            curl -L -o app/src/main/res/drawable/ic_launcher.png "https://upload.wikimedia.org/wikipedia/commons/c/cf/ExoPlayer_logo.png"
+            echo "No custom logo found in root, using standard ExoPlayer PNG fallback icon."
         fi
         
         # ڕێکخستنا سەرەکی یا ئەندرۆیدێ
@@ -61,7 +62,31 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        # ڤیدیۆ دبیتە تەمام شاشە دگەڵ WebView د سەر دا ب شەفافیەت و لۆدکرن ل بنی شاشێ
+        cat << 'EOF' > app/build.gradle
+        plugins { id 'com.android.application' }
+        android {
+            namespace 'com.kurdtv.vip'
+            compileSdk 34
+            defaultConfig {
+                applicationId "com.kurdtv.vip"
+                minSdk 21
+                targetSdk 34
+                versionCode 1
+                versionName "1.0.0"
+            }
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
+            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
+        }
+        EOF
+        
+        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ، چەرخا لۆدکرنێ، و لایەرێ شەفاف
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -114,7 +139,6 @@ jobs:
                 android:roundIcon="@drawable/ic_launcher"
                 android:theme="@style/Theme.AppCompat.Light.NoActionBar"
                 android:usesCleartextTraffic="true"
-                android:banner="@drawable/ic_launcher"
                 android:hardwareAccelerated="true">
                 <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection">
                     <intent-filter>
@@ -143,7 +167,7 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.ProgressBar; // 🟢 چارەسەریا فەرمی یا ناساندنا ProgressBar بۆ لادانا خەلەتیێ
+        import android.widget.ProgressBar; // 🟢 ڕێگری کرنا دروست د کێشەیێن بونیاتنانێ دا
         import android.widget.LinearLayout;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
@@ -157,7 +181,7 @@ jobs:
             private WebView wv;
             private ExoPlayer player;
             private StyledPlayerView playerView;
-            private ProgressBar loadingSpinner; // 🟢 پێناسەکردنا دروست
+            private ProgressBar loadingSpinner;
             private boolean isFullscreen = false;
 
             @Override
@@ -177,7 +201,6 @@ jobs:
 
                 playerView.setVisibility(View.GONE);
 
-                // دروستکردنا مەکینەیا لۆدکرنا خێرا
                 DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                         .setBufferDurationsMs(1000, 4000, 800, 1000)
                         .build();
