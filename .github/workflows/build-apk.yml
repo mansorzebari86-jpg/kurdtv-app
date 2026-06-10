@@ -85,7 +85,7 @@ jobs:
         }
         EOF
         
-        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ د سەرانسەری شاشا ٢٤٠ دا
+        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ د ناڤ لایەرێ ٢٤٠ دا
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -218,7 +218,6 @@ jobs:
         import android.graphics.Color;
         import android.net.Uri;
         import android.os.Bundle;
-        import android.os.Handler;
         import android.view.View;
         import android.view.ViewGroup;
         import android.view.WindowManager;
@@ -228,7 +227,9 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.ProgressBar;
+        import android.widget.ImageButton;
+        import android.widget.LinearLayout;
+        import android.widget.ProgressBar; // 🟢 لۆدکردنا دروست بۆ چاککردنەوەیا ب تەمامی یا خەلەتییێ
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
         import com.google.android.exoplayer2.DefaultLoadControl;
@@ -243,18 +244,6 @@ jobs:
             private StyledPlayerView playerView;
             private ProgressBar loadingSpinner;
             private boolean isFullscreen = false;
-
-            // 🟢 سیستەمێ ئۆتۆماتیکی یێ بەخشکرنەوەیا خۆکار دگەڵ پچڕانی لێنکی
-            private final Handler retryHandler = new Handler();
-            private final Runnable retryRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if (player != null) {
-                        player.prepare();
-                        player.play();
-                    }
-                }
-            };
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -285,7 +274,6 @@ jobs:
 
                 player.setPlayWhenReady(true); 
 
-                // 🟢 دەستنیشانکرنا دوکما سور یا کەتوارا دەرچوونێ ژ بەخشکرنێ
                 View closeBtn = playerView.findViewById(R.id.custom_close_btn);
                 if (closeBtn != null) {
                     closeBtn.setOnClickListener(new View.OnClickListener() {
@@ -310,12 +298,10 @@ jobs:
                             if (loadingSpinner != null) {
                                 loadingSpinner.setVisibility(View.VISIBLE);
                             }
-                            retryHandler.removeCallbacks(retryRunnable);
                         } else if (state == Player.STATE_READY) {
                             if (loadingSpinner != null) {
                                 loadingSpinner.setVisibility(View.GONE);
                             }
-                            retryHandler.removeCallbacks(retryRunnable);
                         } else if (state == Player.STATE_ENDED) {
                             if (loadingSpinner != null) {
                                 loadingSpinner.setVisibility(View.GONE);
@@ -326,11 +312,9 @@ jobs:
                     @Override
                     public void onPlayerError(com.google.android.exoplayer2.PlaybackException error) {
                         if (loadingSpinner != null) {
-                            loadingSpinner.setVisibility(View.VISIBLE);
+                            loadingSpinner.setVisibility(View.GONE);
                         }
-                        // تاقیکرنەوەیا خۆکار یا دەستپێکرنەوەی هەر ٣ چرکەیەک داکو کەنال ب ئۆتۆپلەی زڤڕیت
-                        retryHandler.removeCallbacks(retryRunnable);
-                        retryHandler.postDelayed(retryRunnable, 3000);
+                        Toast.makeText(MainActivity.this, "ئاریشە د پەخشی دا هەیە!", Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -355,7 +339,6 @@ jobs:
                                     if (loadingSpinner != null) {
                                         loadingSpinner.setVisibility(View.VISIBLE);
                                     }
-                                    retryHandler.removeCallbacks(retryRunnable);
 
                                     MediaItem mediaItem = MediaItem.fromUri(Uri.parse(url));
                                     player.setMediaItem(mediaItem);
@@ -441,7 +424,6 @@ jobs:
             }
 
             private void stopAndHidePlayer() {
-                retryHandler.removeCallbacks(retryRunnable);
                 if (player != null) {
                     player.stop();
                     player.clearMediaItems();
@@ -505,7 +487,6 @@ jobs:
             @Override
             protected void onDestroy() {
                 super.onDestroy();
-                retryHandler.removeCallbacks(retryRunnable);
                 if (player != null) {
                     player.release();
                     player = null;
