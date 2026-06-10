@@ -307,7 +307,7 @@
             <div class="settings-card">
                 <div class="settings-avatar"><i class="fa-solid fa-crown text-yellow-400"></i></div>
                 <h3 class="settings-name">دەربارەی من</h3>
-                <p class="settings-bio">بەخێربێی بۆ باشترین بەرنامەی پەخشی ڕاستەوخۆ. بۆ ئاگاداربوون لە نوێترین زانیارییەکان و پەیوەندیکردن، سەردانی تیکتۆکەکەم بکە.</p>
+                <p class="settings-bio">بەخێربێی بۆ باشترین بەرنامەی پەخشی ڕاستەوخۆ. بۆ ئاگاداربوون لە نوێترین زانیارییەکان و پەیوەندیکردن, سەردانی تیکتۆکەکەم بکە.</p>
                 
                 <!-- 🟢 ڕاستەوخۆ گرێدان ب لێنکێ فەرمی یێ ئۆنلاین یێ تیکتۆکێ -->
                 <a href="https://www.tiktok.com/@kurdtv.vip" class="mt-2 mx-auto inline-flex items-center gap-2 bg-[#ff0050] text-white px-6 py-2.5 rounded-full font-bold shadow-[0_4px_15px_rgba(255,0,80,0.4)] active:scale-95 transition-transform" style="text-decoration: none;">
@@ -419,7 +419,10 @@
             { name: "med music", type: "music", logo: "https://i.ibb.co/k20n7xrj/med-muzik-tv-528x297-1.webp", stream: "http://54.36.110.140/live3/live3.m3u8" },
             { name: "Soze TV", type: "music", logo: "https://kimi-web-img.moonshot.cn/img/karwan.tv/5c190bbf4864ba60e28f51eedbba832d806655f6.jpg", stream: "https://live20.bozztv.com/giatv/giatv-sozetv/sozetv/chunks.m3u8" },
             { name: "Farmuda HD", type: "music", logo: "https://i.ibb.co/mVLmP8dJ/images-25.jpg", stream: "https://avr.host247.net/live/FarmodaTV/playlist.m3u8" },
-            { name: "Zarok TV", type: "music", logo: "https://i.ibb.co/pvrGnx34/images-24.jpg", stream: "https://zindisorani.zaroktv.com.tr/hls/stream.m3u8" }
+            { name: "Zarok TV", type: "music", logo: "https://i.ibb.co/pvrGnx34/images-24.jpg", stream: "https://zindisorani.zaroktv.com.tr/hls/stream.m3u8" },
+            { name: "4Kurd", type: "music", logo: "https://i.ibb.co/B5LNMBhY/Screenshot-20260610-142454.jpg", stream: "https://4kuhls.persiana.live/hls/stream.m3u8" }, // 🟢 Added
+            { name: "Afarin baxcha", type: "music", logo: "https://i.ibb.co/QFYYFdj4/images-32.jpg", stream: "https://5dcabf026b188.streamlock.net/afarinTV/livestream/playlist.m3u8" }, // 🟢 Added
+            { name: "Afarin kids", type: "music", logo: "https://i.ibb.co/bgCZpBLq/images-33.jpg", stream: "https://5dcabf026b188.streamlock.net/afarinTV/livestream/playlist.m3u8" } // 🟢 Added
         ];
 
         const video = document.getElementById('hlsVideo');
@@ -440,7 +443,6 @@
             setTimeout(() => { container.style.opacity = '0'; }, 3000);
         }
 
-        // ... Keep exactly same functions below
         function createCard(item) {
             const displayType = item.type === 'music' ? 'مۆسیقا' : item.type;
             return `
@@ -459,6 +461,7 @@
             Object.keys(sectors).forEach(key => { document.getElementById(`grid-${key}`).innerHTML = sectors[key]; });
         }
 
+        // ... Keep exactly same functions below
         function renderAllChannelsPage() {
             let content = '';
             database.forEach(item => { content += createCard(item); });
@@ -593,4 +596,4 @@
         }
     </script>
 </body>
-                </html>
+    </html>
