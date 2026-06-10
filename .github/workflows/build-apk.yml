@@ -33,7 +33,7 @@ jobs:
         # دانانا فایلێ ناوخۆیی وەک پاشکەوت
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
-        # 🟢 کۆنتڕۆلکرنا لۆگۆیێ فەرمی یێ بەرنامەی (PNG یێ فەرمی بۆ لادانا خەلەتیێن AAPT2)
+        # 🟢 کۆنتڕۆلکرنا لۆگۆیێ فەرمی یێ بەرنامەی
         if [ -f "logo.png" ]; then
             cp logo.png app/src/main/res/drawable/ic_launcher.png
             echo "Custom logo.png successfully set as App Icon!"
@@ -44,7 +44,6 @@ jobs:
             cp logo.webp app/src/main/res/drawable/ic_launcher.png
             echo "Custom logo.webp successfully set as App Icon!"
         else
-            # دابەزاندنا لۆگۆیەکێ فەرمی و ڕاستەقینە یێ PNG یێ بێ خەلەتی
             curl -L -o app/src/main/res/drawable/ic_launcher.png "https://upload.wikimedia.org/wikipedia/commons/c/cf/ExoPlayer_logo.png"
             echo "No custom logo found in root, using standard ExoPlayer PNG fallback icon."
         fi
@@ -62,31 +61,7 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        cat << 'EOF' > app/build.gradle
-        plugins { id 'com.android.application' }
-        android {
-            namespace 'com.kurdtv.vip'
-            compileSdk 34
-            defaultConfig {
-                applicationId "com.kurdtv.vip"
-                minSdk 21
-                targetSdk 34
-                versionCode 1
-                versionName "1.0.0"
-            }
-            compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
-            }
-        }
-        dependencies {
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-            implementation 'com.google.android.material:material:1.11.0'
-            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
-        }
-        EOF
-        
-        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ، چەرخا لۆدکرنێ، و لایەرێ شەفاف
+        # ڤیدیۆ دبیتە تەمام شاشە دگەڵ WebView د سەر دا ب شەفافیەت و لۆدکرن ل بنی شاشێ
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -156,6 +131,7 @@ jobs:
         import android.content.Intent;
         import android.content.pm.PackageManager;
         import android.content.pm.ActivityInfo;
+        import android.graphics.Color; // 🟢 بۆ شەفافکرنا تەمام یا شاشێ
         import android.net.Uri;
         import android.os.Bundle;
         import android.view.View;
@@ -167,7 +143,7 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.ProgressBar; // 🟢 ڕێگری کرنا دروست د کێشەیێن بونیاتنانێ دا
+        import android.widget.ProgressBar;
         import android.widget.LinearLayout;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
@@ -194,6 +170,9 @@ jobs:
                 loadingSpinner = findViewById(R.id.native_loading_spinner);
 
                 wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                
+                // 🟢 شەفافکرنا تەمام یا WebView داکو ڤیدیۆیا پشت شاشێ ب دروستی دەرکەڤیت
+                wv.setBackgroundColor(Color.TRANSPARENT);
 
                 wv.setFocusable(true);
                 wv.setFocusableInTouchMode(true);
@@ -210,7 +189,6 @@ jobs:
                         .build();
                 playerView.setPlayer(player);
 
-                // ئۆتۆپلەی فەرمی بێ دوکما play یا کەتوار ل ناڤەڕاستێ
                 player.setPlayWhenReady(true); 
 
                 player.addListener(new Player.Listener() {
@@ -343,8 +321,8 @@ jobs:
 
                     @Override
                     public void onPageFinished(WebView view, String url) {
-                        String js = "window.triggerStreamingOverlay = function(url, name, category) { window.AndroidBridge.playInExo(url, name); };" +
-                                    "window.exitStreamOverlay = function() { window.AndroidBridge.stopExo(); };";
+                        // 🟢 مە لادانا سەرەکی یا تێکدەر یا triggerStreamingOverlay لادا داکو سیستم ب خۆکار کار کەت
+                        String js = "window.exitStreamOverlay = function() { window.AndroidBridge.stopExo(); };";
                         wv.evaluateJavascript(js, null);
                     }
 
