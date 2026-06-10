@@ -358,15 +358,14 @@
         <div class="nav-item" tabindex="0" onclick="switchMainTab('settingsPage', this)"><i class="fa-solid fa-gear"></i><span>Settings</span></div>
     </div>
 
-    <!-- 🟢 STREAMING PLAYER (بۆ ئۆنلاین کارکردن د لێگەڕۆکێ کڕۆمێ دا) -->
+    <!-- 🟢 STREAMING PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین ل سەر شاشێ) -->
     <div id="streamPage">
         <div class="video-container" id="videoWrapperBox">
-            <video id="hlsVideo" playsinline autoplay></video>
-            
             <div id="loadingSpinner" class="premium-loader"></div>
 
             <div class="stream-header player-control">
                 <div class="stream-header-right">
+                    <!-- 🟢 دوکما سور یا کەتوارا دەرچوونێ ژ بەخشکرنێ -->
                     <button class="btn-red-exit" onclick="exitStreamOverlay(event)"><i class="fa-solid fa-power-off"></i></button>
                     <span style="font-size: 15px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
                         کەناڵێ ڕاستەوخۆ <span class="live-badge"><span class="live-dot"></span>LIVE</span>
@@ -451,7 +450,6 @@
         document.addEventListener("DOMContentLoaded", () => {
             renderDashboard();
             renderAllChannelsPage();
-            renderVideoPlayerBottomCarousel();
         });
 
         function triggerNotification(msg) {
@@ -466,7 +464,7 @@
         function createCard(item) {
             const displayType = item.type === 'music' ? 'مۆسیقا' : item.type;
             return `
-                <div class="channel-card search-target" tabindex="0" data-name="${item.name.toLowerCase()}" data-type="${item.type}" onclick="triggerStreamingOverlay('${item.stream}', '${item.name}')">
+                <div class="channel-card search-target" tabindex="0" data-name="${item.name.toLowerCase()}" data-type="${item.type}" onclick="triggerStreamingOverlay('${item.stream}', '${item.name}', '${item.type}')">
                     <div class="logo-container">
                         <span class="badge ${item.type}">${displayType}</span>
                         <img src="${item.logo}" alt="${item.name}" loading="lazy">
@@ -487,12 +485,18 @@
             document.getElementById('grid-all-page').innerHTML = content;
         }
 
-        function renderVideoPlayerBottomCarousel() {
+        // دروستکرنا دۆلابا ل بنی شاشێ تەنێ بۆ هەمان کاتیگۆری یا کەنالی
+        function renderVideoPlayerBottomCarousel(category, activeName) {
             const scroller = document.getElementById('bottomCarousel');
             let content = '';
-            database.forEach(item => {
+            
+            // فلتەرکرنا کەنالان تەنێ بۆ هەمان کاتیگۆری
+            const filtered = database.filter(item => item.type === category);
+            
+            filtered.forEach(item => {
+                const isActive = item.name === activeName ? 'active' : '';
                 content += `
-                    <div class="stream-icon carousel-target" tabindex="0" data-name="${item.name}" onclick="initiateFastPlayback('${item.stream}', '${item.name}', event)">
+                    <div class="stream-icon carousel-target ${isActive}" tabindex="0" data-name="${item.name}" onclick="initiateFastPlayback('${item.stream}', '${item.name}', '${item.type}', event)">
                         <img src="${item.logo}" alt="${item.name}">
                     </div>`;
             });
@@ -522,22 +526,6 @@
             });
         }
 
-        function appSearch(val) {
-            const query = val.toLowerCase().trim();
-            document.querySelectorAll('.search-target').forEach(card => {
-                const name = card.getAttribute('data-name');
-                card.style.display = name.includes(query) ? 'block' : 'none';
-            });
-            if (document.getElementById('homePage').classList.contains('active')) {
-                const sections = ['news', 'sports', 'movies', 'music'];
-                sections.forEach(sec => {
-                    const parentGrid = document.getElementById(`grid-${sec}`);
-                    const visible = parentGrid.querySelectorAll('.channel-card[style="display: block;"], .channel-card:not([style])');
-                    document.getElementById(`home-${sec}`).style.display = (visible.length === 0 && query !== '') ? 'none' : 'block';
-                });
-            }
-        }
-
         function setScrollerActiveHighlight(channelName) {
             document.querySelectorAll('.carousel-target').forEach(icon => {
                 icon.classList.remove('active');
@@ -549,22 +537,34 @@
         }
 
         // HYBRID PLAYBACK DETECTOR
-        function triggerStreamingOverlay(streamUrl, channelName) {
+        function triggerStreamingOverlay(streamUrl, channelName, category) {
             if (window.AndroidBridge) {
+                // ١. د ناڤ ئەپڵیکەیشنێ دا: ڤیدیۆیا نەیف کار پێ دکەت
                 window.AndroidBridge.playInExo(streamUrl, channelName);
-            } else {
+                
+                // لۆدکرنا لایەرێ فەرمی یێ کەنالان ل خوارێ
                 const overlay = document.getElementById('streamPage');
                 overlay.classList.add('active');
-                setScrollerActiveHighlight(channelName);
-                initiateFastPlayback(streamUrl, channelName);
+                renderVideoPlayerBottomCarousel(category, channelName);
+            } else {
+                // ٢. د ناڤ کڕۆمێ دا: مینی پلەیەر ڤەدکەت
+                const overlay = document.getElementById('streamPage');
+                overlay.classList.add('active');
+                renderVideoPlayerBottomCarousel(category, channelName);
+                initiateFastPlayback(streamUrl, channelName, category, null);
             }
         }
 
         // HLS.js PLAYBACK ENGINE FOR WEB BROWSER
-        function initiateFastPlayback(streamUrl, channelName, event) {
+        function initiateFastPlayback(streamUrl, channelName, category, event) {
             if (event) event.stopPropagation();
             setScrollerActiveHighlight(channelName);
             
+            if (window.AndroidBridge) {
+                window.AndroidBridge.playInExo(streamUrl, channelName);
+                return;
+            }
+
             currentPlayingUrl = streamUrl;
             const loader = document.getElementById('loadingSpinner');
             loader.style.display = 'block';
@@ -602,19 +602,29 @@
         function exitStreamOverlay(event) {
             if (event) event.stopPropagation();
             document.getElementById('streamPage').classList.remove('active');
-            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-            video.pause(); video.removeAttribute('src'); video.load();
+            
+            if (window.AndroidBridge) {
+                window.AndroidBridge.stopExo();
+            } else {
+                if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+                video.pause(); video.removeAttribute('src'); video.load();
+            }
         }
 
         function toggleScreenOrientation(event) {
             if (event) event.stopPropagation();
-            const overlay = document.getElementById('streamPage');
-            if (!document.fullscreenElement) {
-                if (overlay.requestFullscreen) overlay.requestFullscreen();
+            if (window.AndroidBridge) {
+                const isLandscape = window.innerHeight < window.innerWidth;
+                window.AndroidBridge.toggleLandscape(!isLandscape);
             } else {
-                if (document.exitFullscreen) document.exitFullscreen();
+                const overlay = document.getElementById('streamPage');
+                if (!document.fullscreenElement) {
+                    if (overlay.requestFullscreen) overlay.requestFullscreen();
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                }
             }
         }
     </script>
 </body>
-                </html>
+    </html>
