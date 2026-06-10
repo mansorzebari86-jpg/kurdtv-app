@@ -191,11 +191,11 @@
             opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
         }
 
-        /* 🟢 WEB PLAYER OVERLAY (بۆ کارکردنا فەرمی یا لایەرێ Maten TV ب شەفافیەت) */
+        /* 🟢 WEB PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین) */
         #streamPage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: transparent !important; z-index: 9999; display: none; }
         #streamPage.active { display: block; }
         .video-container { width: 100%; height: 100%; background: transparent !important; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .video-container video { display: none !important; } /* د بەرنامەی دا ناهێتە کارپێکرن چونکی ExoPlayer ل پشت لایەری ڤیدیۆیێ لێدەدەت */
+        .video-container video { display: none !important; }
         
         .premium-loader { width: 50px; height: 50px; border: 4px solid rgba(77, 166, 255, 0.15); border-top-color: var(--blue-text); border-radius: 50%; animation: premiumSpin 0.7s linear infinite; position: absolute; z-index: 20; display: none; }
         @keyframes premiumSpin { 100% { transform: rotate(360deg); } }
@@ -385,7 +385,6 @@
                 <button class="btn-landscape-mode" onclick="toggleScreenOrientation(event)"><i class="fa-solid fa-expand"></i></button>
             </div>
 
-            <!-- دۆلابا ل بنی شاشێ کاتیگۆریا تایبەت -->
             <div class="stream-bottom-channels player-control" id="bottomCarousel"></div>
         </div>
     </div>
@@ -579,7 +578,7 @@
                 const overlay = document.getElementById('streamPage');
                 overlay.classList.add('active');
                 renderVideoPlayerBottomCarousel(category, channelName);
-                initiateFastPlayback(streamUrl, channelName, category);
+                initiateFastPlayback(streamUrl, channelName, category, null);
             }
         }
 
@@ -655,4 +654,4 @@
         }
     </script>
 </body>
-                </html>
+            </html>
