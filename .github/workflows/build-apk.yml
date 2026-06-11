@@ -1,583 +1,648 @@
-name: Build Kurd TV VIP APK
-
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout Source Code
-      uses: actions/checkout@v4
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-
-    - name: Setup Android Premium UI Project
-      run: |
-        mkdir -p app/src/main/assets
-        mkdir -p app/src/main/java/com/kurdtv/vip
-        mkdir -p app/src/main/res/values
-        mkdir -p app/src/main/res/layout
-        mkdir -p app/src/main/res/drawable
-        
-        # دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما داخستنێ یا پاك
-        cat << 'EOF' > app/src/main/res/drawable/ic_close.xml
-        <vector xmlns:android="http://schemas.android.com/apk/res/android"
-            android:width="24dp"
-            android:height="24dp"
-            android:viewportWidth="24"
-            android:viewportHeight="24">
-            <path
-                android:fillColor="#FFFFFFFF"
-                android:pathData="M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12z"/>
-        </vector>
-        EOF
-
-        # دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما تەمام شاشەکردنێ (Fullscreen Arrows)
-        cat << 'EOF' > app/src/main/res/drawable/ic_fullscreen.xml
-        <vector xmlns:android="http://schemas.android.com/apk/res/android"
-            android:width="24dp"
-            android:height="24dp"
-            android:viewportWidth="24"
-            android:viewportHeight="24">
-            <path
-                android:fillColor="#FFFFFFFF"
-                android:pathData="M7,14H5v5h5v-2H7V14z M5,10h2V7h3V5H5V10z M17,17h-3v2h5v-5h-2V17z M14,5v2h3v3h2V5H14z"/>
-        </vector>
-        EOF
-        
-        # دانانا فایلا HTML
-        cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
-        
-        # کۆنتڕۆلکرنا لۆگۆیێ فەرمی یێ بەرنامەی
-        if [ -f "logo.png" ]; then
-            cp logo.png app/src/main/res/drawable/ic_launcher.png
-            echo "Custom logo.png successfully set as App Icon!"
-        elif [ -f "logo.jpg" ]; then
-            cp logo.jpg app/src/main/res/drawable/ic_launcher.png
-            echo "Custom logo.jpg successfully set as App Icon!"
-        elif [ -f "logo.webp" ]; then
-            cp logo.webp app/src/main/res/drawable/ic_launcher.png
-            echo "Custom logo.webp successfully set as App Icon!"
-        else
-            curl -L -o app/src/main/res/drawable/ic_launcher.png "https://upload.wikimedia.org/wikipedia/commons/c/cf/ExoPlayer_logo.png"
-            echo "No custom logo found in root, using standard ExoPlayer PNG fallback icon."
-        fi
-        
-        # ڕێکخستنا سەرەکی یا ئەندرۆیدێ
-        echo "android.useAndroidX=true" > gradle.properties
-        echo "android.enableJetifier=true" >> gradle.properties
-        echo "include ':app'" > settings.gradle
-        
-        cat << 'EOF' > build.gradle
-        buildscript {
-            repositories { google(); mavenCentral() }
-            dependencies { classpath 'com.android.tools.build:gradle:8.2.2' }
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kurd TV VIP</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HLS.js for Web Browser Playback Fallback -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --nav-bg: #111111;
+            --blue-text: #4da6ff;
+            --gray-text: #777777;
+            --yellow: #ffd700;
         }
-        allprojects { repositories { google(); mavenCentral() } }
-        EOF
-        
-        cat << 'EOF' > app/build.gradle
-        plugins { id 'com.android.application' }
-        android {
-            namespace 'com.kurdtv.vip'
-            compileSdk 34
-            defaultConfig {
-                applicationId "com.kurdtv.vip"
-                minSdk 21
-                targetSdk 34
-                versionCode 1
-                versionName "1.0.0"
-            }
-            compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
-            }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* لادانا گراوییا ٣٠٠ ملی چرکە */
         }
-        dependencies {
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-            implementation 'com.google.android.material:material:1.11.0'
-            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
+
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            padding-bottom: 85px;
+            overflow-x: hidden;
         }
-        EOF
+
+        .page { display: none; }
+        .page.active { display: block; animation: fadeInPage 0.2s ease-out; }
+        @keyframes fadeInPage { 
+            from { opacity: 0; transform: translateY(5px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* لادانا blur بۆ ڕێگریکردن د گرانبوونێ دا */
+        .header-container { 
+            padding: 15px; position: sticky; top: 0; 
+            background: rgba(10, 10, 10, 0.98); 
+            z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); 
+        }
+
+        .search-box { 
+            background: #1a1a1a; border-radius: 25px; padding: 10px 20px; 
+            display: flex; align-items: center; border: 1px solid #333; transition: all 0.2s ease; 
+        }
+        .search-box:focus-within { 
+            border-color: var(--blue-text); background: #222; 
+        }
+        .search-box input { 
+            background: transparent; border: none; color: #fff; outline: none; width: 100%; text-align: right; font-size: 14px; 
+        }
+        .search-box i { color: #888; margin-left: 10px; }
+        .search-box:focus-within i { color: var(--blue-text); }
+
+        .banner-container { padding: 0 15px 15px; }
+        .main-banner { 
+            background: linear-gradient(135deg, #162a33 0%, #0a0a0a 100%); 
+            border: 1px solid rgba(255, 215, 0, 0.2); 
+            border-radius: 20px; padding: 20px; text-align: center; position: relative; overflow: hidden; 
+        }
+        .main-banner h2 { 
+            color: var(--yellow); font-size: 24px; margin-bottom: 5px; font-weight: bold;
+        }
+        .main-banner p { font-size: 13px; color: #ddd; font-weight: 500;}
+
+        .section-wrapper { padding: 10px 15px; margin-bottom: 5px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .section-title { font-size: 17px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .see-more { 
+            background: #1c2b3a; color: var(--blue-text); padding: 6px 16px; border-radius: 15px; 
+            font-size: 12px; display: flex; align-items: center; gap: 5px; cursor: pointer; border: none; 
+            font-weight: bold;
+        }
+
+        .channel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         
-        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی (ب لادانا ب تەمامی یا لایەرێ خەلەتییا ٨ چرکە یا ناوخۆیی)
-        cat << 'EOF' > app/src/main/res/layout/activity_main.xml
-        <?xml version="1.0" encoding="utf-8"?>
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:background="#0A0E17">
+        /* دەرکەفتنا نایاب یا هۆق یا تەلەفزیۆنێ (D-pad Focus) */
+        .channel-card { text-align: center; text-decoration: none; cursor: pointer; border-radius: 18px; outline: none; transition: all 0.15s ease; }
+        .channel-card:focus {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--yellow);
+        }
+        .channel-card:focus .logo-container {
+            border-color: var(--yellow) !important;
+        }
+        .channel-card:active { transform: scale(0.95); }
 
-            <FrameLayout
-                android:id="@+id/player_container"
-                android:layout_width="match_parent"
-                android:layout_height="240dp"
-                android:visibility="gone">
-
-                <!-- پلەیەر ب کۆنتڕۆلا کەتوار بۆ کارکرنا دوکمان -->
-                <com.google.android.exoplayer2.ui.StyledPlayerView
-                    android:id="@+id/main_player_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="#000000"
-                    app:surface_type="texture_view"
-                    app:resize_mode="fit"
-                    app:use_controller="true"
-                    app:show_timeout="3000"
-                    app:controller_layout_id="@layout/custom_exo_controls"/>
-
-                <!-- چەرخا لۆدکرنا نەیف (Buffering Spinner) -->
-                <ProgressBar
-                    android:id="@+id/native_loading_spinner"
-                    android:layout_width="55dp"
-                    android:layout_height="55dp"
-                    android:layout_gravity="center"
-                    android:indeterminateTint="#4da6ff"
-                    android:visibility="gone" />
-            </FrameLayout>
-
-            <WebView
-                android:id="@+id/main_web_view"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:background="#0A0E17"/>
-        </LinearLayout>
-        EOF
-
-        # دروستکردنا کۆنتڕۆلێن نەیف یێن پاقژ ب وێنەیێن ڤێکتۆر یێن نوو یێن ic_close و ic_fullscreen
-        cat << 'EOF' > app/src/main/res/layout/custom_exo_controls.xml
-        <?xml version="1.0" encoding="utf-8"?>
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#30000000">
-
-            <!-- دوکما سۆر یا داخستنێ (Power Icon) ل سەرێ ڕاستێ دگەڵ وێنەیێ ic_close -->
-            <ImageButton
-                android:id="@+id/custom_close_btn"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentEnd="true"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="12dp"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_close"
-                android:tint="#EF4444"
-                android:contentDescription="Close" />
-
-            <!-- دوکما لەندسکێپێ ل خوارێ سمتێ چەپێ دگەڵ وێنەیێ ic_fullscreen -->
-            <ImageButton
-                android:id="@+id/exo_fullscreen"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="12dp"
-                android:layout_marginBottom="12dp"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_fullscreen"
-                android:tint="#FFFFFF"
-                android:contentDescription="Fullscreen" />
-
-            <!-- نیشاندەرا Live یا نەیف -->
-            <TextView
-                android:id="@+id/live_indicator_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="12dp"
-                android:layout_marginBottom="18dp"
-                android:text="LIVE 🔴"
-                android:textColor="#EF4444"
-                android:textStyle="bold"
-                android:textSize="11sp" />
-        </RelativeLayout>
-        EOF
+        .logo-container { 
+            background: linear-gradient(145deg, #1c1c1e, #0e0e11); 
+            border-radius: 18px; 
+            aspect-ratio: 1/1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            padding: 8px; 
+            border: 1px solid rgba(255,255,255,0.08); 
+        }
+        .logo-container img { 
+            width: 90%; 
+            height: 90%; 
+            object-fit: contain; 
+        }
         
-        cat << 'EOF' > app/src/main/AndroidManifest.xml
-        <?xml version="1.0" encoding="utf-8"?>
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+        .channel-name { display: block; font-size: 11px; color: #ddd; margin-top: 8px; font-weight: bold; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+
+        .badge { 
+            position: absolute; 
+            top: -6px; 
+            right: -6px; 
+            padding: 3px 6px; 
+            border-radius: 8px; 
+            font-size: 8px; 
+            font-weight: bold; 
+            color: #fff; 
+            text-transform: uppercase; 
+            z-index: 2; 
+        }
+        .badge.news { background: linear-gradient(135deg, #0072ff, #00c6ff); }
+        .badge.sports { background: linear-gradient(135deg, #f12711, #f5af19); }
+        .badge.movies { background: linear-gradient(135deg, #8A2387, #E94057); }
+        .badge.music { background: linear-gradient(135deg, #654ea3, #eaafc8); }
+
+        .category-scroll { display: flex; overflow-x: auto; padding: 10px 15px; gap: 10px; scrollbar-width: none; }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        
+        .chip { 
+            background: #1a1a1a; color: #fff; padding: 8px 18px; border-radius: 20px; 
+            white-space: nowrap; font-size: 14px; display: flex; align-items: center; gap: 8px; 
+            border: 1px solid #333; cursor: pointer; outline: none;
+        }
+        .chip:focus {
+            border-color: var(--blue-text);
+            box-shadow: 0 0 10px var(--blue-text);
+        }
+        .chip.active { background: #1c2b3a; color: var(--blue-text); border-color: var(--blue-text); font-weight: bold;}
+
+        .page-title { padding: 10px 15px; font-size: 20px; font-weight: bold; }
+
+        .bottom-nav { 
+            position: fixed; bottom: 0; width: 100%; 
+            background-color: rgba(17, 17, 17, 0.99); 
+            display: flex; justify-content: space-around; 
+            padding: 12px 0 18px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 1000; 
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--gray-text); text-decoration: none; font-size: 11px; font-weight: bold; cursor: pointer; position: relative; outline: none; padding: 5px; border-radius: 10px; }
+        .nav-item:focus {
+            color: var(--blue-text);
+            background: rgba(255,255,255,0.05);
+        }
+        .nav-item i { font-size: 22px; margin-bottom: 4px; }
+        .nav-item.active { color: var(--blue-text); }
+        .nav-item.active::before { 
+            content: ''; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); 
+            width: 35px; height: 3px; background: var(--blue-text); border-radius: 0 0 5px 5px; 
+        }
+
+        /* Settings Page */
+        .settings-container { padding: 15px; }
+        .settings-card { 
+            background: linear-gradient(145deg, #1a1a24, #0d0d12); border: 1px solid rgba(255,255,255,0.08); 
+            border-radius: 20px; padding: 25px 20px; text-align: center; margin-bottom: 15px; 
+            position: relative; overflow: hidden;
+        }
+        .settings-avatar { 
+            width: 80px; height: 80px; background: linear-gradient(45deg, var(--yellow), #ff9800); 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            font-size: 35px; color: #111; margin: 0 auto 12px auto; border: 3px solid #222; 
+        }
+        
+        .ai-badge {
+            position: absolute; top: 15px; right: 15px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 5px;
+        }
+
+        #customAlert {
+            position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #18181b; 
+            border: 1px solid #27272a; color: #fff; padding: 10px 18px; border-radius: 15px; font-size: 13px; 
+            font-weight: bold; display: flex; align-items: center; gap: 8px; z-index: 10005; box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+        }
+
+        /* 🟢 WEB PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین) */
+        #streamPage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: transparent !important; z-index: 9999; display: none; }
+        #streamPage.active { display: block; }
+        .video-container { width: 100%; height: 100%; background: transparent !important; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .video-container video { display: none !important; }
+        
+        .premium-loader { width: 50px; height: 50px; border: 4px solid rgba(77, 166, 255, 0.15); border-top-color: var(--blue-text); border-radius: 50%; animation: premiumSpin 0.7s linear infinite; position: absolute; z-index: 20; display: none; }
+        @keyframes premiumSpin { 100% { transform: rotate(360deg); } }
+        .player-control { transition: opacity 0.4s ease; position: absolute; z-index: 10; width: 100%; left: 0; pointer-events: auto; }
+        
+        .stream-header { top: 0; padding: 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; justify-content: space-between; align-items: center; }
+        .stream-header-right { display: flex; align-items: center; gap: 15px; }
+        
+        /* دوکما سۆر یا داخستنێ د سەرانسەری تەلەفۆن و تەلەفزیۆنێ دا */
+        .btn-red-exit { background: rgba(239, 68, 68, 0.95); color: #fff; width: 45px; height: 45px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; border: none; outline: none; }
+        .btn-red-exit:focus { box-shadow: 0 0 15px #ef4444; border: 2px solid #fff; }
+        
+        .btn-landscape-mode { background: rgba(255, 255, 255, 0.12); color: #fff; width: 45px; height: 45px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; border: none; outline: none; }
+        .btn-landscape-mode:focus { box-shadow: 0 0 15px #fff; }
+        
+        .live-badge { font-size: 11px; background: rgba(255, 0, 0, 0.15); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(255, 0, 0, 0.3); display: flex; align-items: center; gap: 6px; color: #ff4d4d; font-weight: bold; }
+        .live-dot { width: 7px; height: 7px; background: #ff4d4d; border-radius: 50%; animation: pulseLive 1s infinite alternate; }
+        @keyframes pulseLive { 0% { opacity: 0.2; } 100% { opacity: 1; } }
+        
+        /* دۆلابا ل بنی شاشێ یا کەنالان */
+        .stream-bottom-channels { bottom: 0; padding: 30px 15px 25px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%); display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; align-items: center; }
+        .stream-bottom-channels::-webkit-scrollbar { display: none; }
+        .stream-icon { width: 65px; height: 65px; background: #111; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.05); cursor: pointer; outline: none; transition: all 0.15s ease; }
+        .stream-icon:focus { transform: scale(1.15); border-color: var(--yellow) !important; box-shadow: 0 0 15px var(--yellow); }
+        .stream-icon.active { border-color: var(--yellow); }
+        .stream-icon img { width: 80%; height: 80%; object-fit: contain; }
+    </style>
+</head>
+<body>
+
+    <div id="customAlert">
+        <i class="fa-solid fa-bell text-blue-400"></i>
+        <span id="alertMessage"></span>
+    </div>
+
+    <!-- MAIN HOME PAGE -->
+    <div id="homePage" class="page active">
+        <div class="header-container">
+            <div class="search-box">
+                <input type="text" id="homeSearch" oninput="appSearch(this.value)" placeholder="گەڕیان بۆ کەناڵ...">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+        </div>
+        
+        <div class="banner-container">
+            <div class="main-banner">
+                <h2>KURD TV VIP</h2>
+                <p>باشترین بەرنامە بۆ پەخشی ڕاستەوخۆ</p>
+            </div>
+        </div>
+
+        <div class="section-wrapper" id="home-news">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-newspaper text-blue-400"></i> هەواڵەکان</div>
+                <div class="see-more" onclick="goToCategory('news')">زیاتر ببینە <i class="fa-solid fa-chevron-left"></i></div>
+            </div>
+            <div class="channel-grid" id="grid-news"></div>
+        </div>
+
+        <!-- TELEGRAM BANNER -->
+        <div class="px-4 my-5">
+            <a href="https://t.me/s/Kurdtvvip" class="w-full bg-[#111827] border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between shadow-[0_4px_15px_rgba(0,0,0,0.5)] active:scale-95 transition-all" style="text-decoration: none;">
+                <span class="text-white font-bold text-sm tracking-wide">لە تێلیگرام ئادد بکەن</span>
+                <i class="fa-brands fa-telegram text-[#2AABEE] text-3xl"></i>
+            </a>
+        </div>
+
+        <div class="section-wrapper" id="home-sports">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-soccer-ball text-orange-400"></i> وەرزش</div>
+                <div class="see-more" onclick="goToCategory('sports')">زیاتر ببینە <i class="fa-solid fa-chevron-left"></i></div>
+            </div>
+            <div class="channel-grid" id="grid-sports"></div>
+        </div>
+
+        <!-- TELEGRAM BANNER -->
+        <div class="px-4 my-5">
+            <a href="https://t.me/s/Kurdtvvip" class="w-full bg-[#111827] border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between shadow-[0_4px_15px_rgba(0,0,0,0.5)] active:scale-95 transition-all" style="text-decoration: none;">
+                <span class="text-white font-bold text-sm tracking-wide">لە تێلیگرام ئادد بکەن</span>
+                <i class="fa-brands fa-telegram text-[#2AABEE] text-3xl"></i>
+            </a>
+        </div>
+
+        <div class="section-wrapper" id="home-movies">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-film" style="color: #e91e63;"></i> فیلم</div>
+                <div class="see-more" onclick="goToCategory('movies')">زیاتر ببینە <i class="fa-solid fa-chevron-left"></i></div>
+            </div>
+            <div class="channel-grid" id="grid-movies"></div>
+        </div>
+
+        <!-- TELEGRAM BANNER -->
+        <div class="px-4 my-5">
+            <a href="https://t.me/s/Kurdtvvip" class="w-full bg-[#111827] border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between shadow-[0_4px_15px_rgba(0,0,0,0.5)] active:scale-95 transition-all" style="text-decoration: none;">
+                <span class="text-white font-bold text-sm tracking-wide">لە تێلیگرام ئادد بکەن</span>
+                <i class="fa-brands fa-telegram text-[#2AABEE] text-3xl"></i>
+            </a>
+        </div>
+
+        <!-- مۆسیقا و قورئان -->
+        <div class="section-wrapper" id="home-music">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-music" style="color: #9c27b0;"></i> مۆسیقا و قورئان</div>
+                <div class="see-more" onclick="goToCategory('music')">زیاتر ببینە <i class="fa-solid fa-chevron-left"></i></div>
+            </div>
+            <div class="channel-grid" id="grid-music"></div>
+        </div>
+    </div>
+
+    <!-- ALL CHANNELS PAGE -->
+    <div id="channelsPage" class="page">
+        <div class="header-container">
+            <div class="search-box">
+                <input type="text" id="channelSearchInput" oninput="appSearch(this.value)" placeholder="گەڕیان بۆ کەناڵ...">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+        </div>
+        <div class="page-title">هەموو کەناڵەکان</div>
+        <div class="category-scroll">
+            <div id="chip-all" class="chip active" tabindex="0" onclick="filterCategory('all', this)">هەموو</div>
+            <div id="chip-news" class="chip" tabindex="0" onclick="filterCategory('news', this)"><i class="fa-solid fa-newspaper"></i> هەواڵ</div>
+            <div id="chip-sports" class="chip" tabindex="0" onclick="filterCategory('sports', this)"><i class="fa-solid fa-soccer-ball"></i> وەرزش</div>
+            <div id="chip-movies" class="chip" tabindex="0" onclick="filterCategory('movies', this)"><i class="fa-solid fa-film"></i> فیلم</div>
+            <div id="chip-music" class="chip" tabindex="0" onclick="filterCategory('music', this)"><i class="fa-solid fa-music"></i> مۆسیقا و قورئان</div>
+        </div>
+        <div id="channelContent" style="padding: 10px 15px;">
+            <div class="channel-grid" id="grid-all-page"></div>
+        </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div id="settingsPage" class="page">
+        <div class="header-container">
+            <div class="page-title text-center font-bold">ڕێکخستن</div>
+        </div>
+        <div class="settings-container">
             
-            <uses-feature android:name="android.software.leanback" android:required="false" />
-            <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+            <div class="settings-card">
+                <div class="settings-avatar"><i class="fa-solid fa-crown text-yellow-400"></i></div>
+                <h3 class="settings-name">دەربارەی من</h3>
+                <p class="settings-bio">بەخێربێی بۆ باشترین بەرنامەی پەخشی ڕاستەوخۆ. بۆ ئاگاداربوون لە نوێترین زانیارییەکان و پەیوەندیکردن، سەردانی تیکتۆکەکەم بکە.</p>
+                
+                <!-- 🟢 ڕاستەوخۆ گرێدان ب لێنکێ فەرمی یێ ئۆنلاین یێ تیکتۆکێ -->
+                <a href="https://www.tiktok.com/@kurdtv.vip" class="mt-2 mx-auto inline-flex items-center gap-2 bg-[#ff0050] text-white px-6 py-2.5 rounded-full font-bold shadow-[0_4px_15px_rgba(255,0,80,0.4)] active:scale-95 transition-transform" style="text-decoration: none;">
+                    <i class="fa-brands fa-tiktok text-lg"></i><span>kurdtv.vip</span>
+                </a>
 
-            <application
-                android:allowBackup="true"
-                android:label="Kurd TV VIP"
-                android:icon="@drawable/ic_launcher"
-                android:roundIcon="@drawable/ic_launcher"
-                android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-                android:usesCleartextTraffic="true"
-                android:hardwareAccelerated="true">
-                <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden|layoutDirection">
-                    <intent-filter>
-                        <action android:name="android.intent.action.MAIN" />
-                        <category android:name="android.intent.category.LAUNCHER" />
-                        <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-                    </intent-filter>
-                </activity>
-            </application>
-        </manifest>
-        EOF
-        
-        cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
-        package com.kurdtv.vip;
-        import android.content.Intent;
-        import android.content.pm.PackageManager;
-        import android.content.pm.ActivityInfo;
-        import android.graphics.Color;
-        import android.net.Uri;
-        import android.os.Bundle;
-        import android.os.Handler; // 🟢 چارەسەریا فەرمی یا هاندلەرێ زڤڕاندنا خۆکار
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.view.WindowManager;
-        import android.webkit.JavascriptInterface;
-        import android.webkit.WebChromeClient;
-        import android.webkit.WebSettings;
-        import android.webkit.WebView;
-        import android.webkit.WebViewClient;
-        import android.webkit.WebResourceRequest;
-        import android.widget.FrameLayout; 
-        import android.widget.LinearLayout; 
-        import android.widget.ProgressBar;
-        import android.widget.Toast;
-        import androidx.appcompat.app.AppCompatActivity;
-        import com.google.android.exoplayer2.DefaultLoadControl;
-        import com.google.android.exoplayer2.ExoPlayer;
-        import com.google.android.exoplayer2.MediaItem;
-        import com.google.android.exoplayer2.Player;
-        import com.google.android.exoplayer2.PlaybackException;
-        import com.google.android.exoplayer2.ui.StyledPlayerView;
+                <div class="mt-5 inline-block bg-[#222] text-gray-400 text-xs font-bold px-4 py-1.5 rounded-full border border-gray-700">
+                    ڤێرژن: V 1.0.0 VIP
+                </div>
+            </div>
 
-        public class MainActivity extends AppCompatActivity {
-            private WebView wv;
-            private ExoPlayer player;
-            private StyledPlayerView playerView;
-            private FrameLayout playerContainer; 
-            private ProgressBar loadingSpinner;
-            private boolean isFullscreen = false;
+            <div class="settings-card" style="text-align: right; padding-top: 35px;">
+                <div class="ai-badge"><i class="fa-solid fa-microchip"></i> AI Powered</div>
+                <h3 class="text-white font-bold mb-3 flex items-center gap-2 text-lg">
+                    <i class="fa-brands fa-google text-blue-400 text-xl"></i> گەشەپێدان و تەکنەلۆژیا
+                </h3>
+                <p class="text-sm text-gray-400 leading-relaxed font-medium">
+                    ئەڤ بەرنامەیە ب هێزا زیرەکییا دەستکرد (AI) و ب تایبەت مۆدێلا پێشکەفتی یا <strong class="text-blue-400">Google Gemini</strong> ب ڕێکا کۆمپیوتەری هاتییە دروستکرن و داڕشتن. مە باشترین کۆد و تەکنیک بکارئیناینە داکو ئەزموونەکا خێرا و بێ وەستیان پێشکەشی تە بکەین.
+                </p>
+            </div>
 
-            // 🟢 مەکینەیا زڤڕاندنا خۆکار (Auto-Retry Runner) ب بێ داخستن
-            private int retryCount = 0;
-            private final int MAX_RETRIES = 10;
-            private final Handler retryHandler = new Handler();
-            private final Runnable retryRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if (player != null) {
-                        player.prepare();
-                        player.play();
-                    }
+        </div>
+    </div>
+
+    <!-- BOTTOM TAB NAVIGATION -->
+    <div class="bottom-nav">
+        <div id="nav-home" class="nav-item active" tabindex="0" onclick="switchMainTab('homePage', this)"><i class="fa-solid fa-house"></i><span>Serekî</span></div>
+        <div id="nav-channels" class="nav-item" tabindex="0" onclick="switchMainTab('channelsPage', this)"><i class="fa-solid fa-tv"></i><span>Kanalan</span></div>
+        <div class="nav-item" tabindex="0" onclick="triggerNotification('TV Mode dê زوو هێتە چاککرن')"><i class="fa-solid fa-desktop"></i><span>TV Mode</span></div>
+        <div class="nav-item" tabindex="0" onclick="switchMainTab('settingsPage', this)"><i class="fa-solid fa-gear"></i><span>Settings</span></div>
+    </div>
+
+    <!-- 🟢 STREAMING PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین ل سەر شاشێ) -->
+    <div id="streamPage">
+        <div class="video-container" id="videoWrapperBox">
+            <div id="loadingSpinner" class="premium-loader"></div>
+
+            <div class="stream-header player-control">
+                <div class="stream-header-right">
+                    <!-- 🟢 دوکما سور یا کەتوارا دەرچوونێ ژ بەخشکرنێ -->
+                    <button class="btn-red-exit" onclick="exitStreamOverlay(event)"><i class="fa-solid fa-power-off"></i></button>
+                    <span style="font-size: 15px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                        کەناڵێ ڕاستەوخۆ <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+                    </span>
+                </div>
+                <button class="btn-landscape-mode" onclick="toggleScreenOrientation(event)"><i class="fa-solid fa-expand"></i></button>
+            </div>
+
+            <div class="stream-bottom-channels player-control" id="bottomCarousel"></div>
+        </div>
+    </div>
+
+    <script>
+        const database = [
+            // هەواڵەکان (News)
+            { name: "Channel 8", type: "news", logo: "https://i.ibb.co/B55XSx5q/CHANNEL8-Iraq.webp", stream: "https://live.channel8.com/Channel8-Kurdish/index.fmp4.m3u8" },
+            { name: "NRT HD", type: "news", logo: "https://i.ibb.co/B5NNc1HP/images-2.jpg", stream: "https://hlspackager.akamaized.net/live/DB/NRT_HD/HLS/NRT_HD-avc1_2500000=10002,mp4a_128000=20000.m3u8" },
+            { name: "RUDAW HD", type: "news", logo: "https://i.ibb.co/V0tMym0G/images.jpg", stream: "https://live.rudaw.net/hls/rudaw-tv/master.m3u8" },
+            { name: "Kurdistan 24", type: "news", logo: "https://kimi-web-img.moonshot.cn/img/static.wikia.nocookie.net/72745400a987c0f677d7611bc0c07355be418007", stream: "https://d1x82nydcxndze.cloudfront.net/live/index.m3u8" },
+            { name: "Kurdsat HD", type: "news", logo: "https://i.ibb.co/XZdYhFKC/images-18.jpg", stream: "https://hlspackager.akamaized.net/live/DB/KURDSAT_HD/HLS/KURDSAT_HD-avc1_2500000=10002,mp4a_128000=20000.m3u8" },
+            { name: "War TV", type: "news", logo: "https://i.ibb.co/HDn1nPkr/images-16.jpg", stream: "https://live.kwikmotion.com/waarmedialive/waarmedia.smil/waarmediapublish/waarmedia_source/chunks.m3u8" },
+            { name: "Kurdistan TV", type: "news", logo: "https://i.ibb.co/1fCJ4gfh/images-19.jpg", stream: "https://5a3ed7a72ed4b.streamlock.net/live/SMIL:myStream.smil/chunklist_w1791118443_b1700000_sleng_t64MTA4MHA=.m3u8" },
+            { name: "Gali Kurdistan", type: "news", logo: "https://i.ibb.co/t5rFLtP/images-21.jpg", stream: "https://live.host247.net/gk/gksat/chunklist_w1358946070.m3u8" },
+            { name: "Zagros TV", type: "news", logo: "https://i.ibb.co/1YdHtCh9/images-22.jpg", stream: "https://5a3ed7a72ed4b.streamlock.net/zagrostv/SMIL:myStream.smil/chunklist_w469474030_b1700000_sleng_t64MTA4MHA=.m3u8" },
+            { name: "Kirkuk HD", type: "news", logo: "https://i.ibb.co/qYB4STgR/images-26.jpg", stream: "https://live.kirkuklive.live/hls/stream/index.m3u8" },
+            { name: "BBC News", type: "news", logo: "https://i.ibb.co/wNC2pcDb/images-1.png", stream: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8" },
+            { name: "Welat TV", type: "news", logo: "https://kimi-web-img.moonshot.cn/img/www.welattv.net/b349a68df1104b69845c3c1074f83415f5902c46.jpg", stream: "https://stream.badinan.xyz/welat/tv/chunklist_w1721419603.m3u8" },
+            { name: "Ava media", type: "news", logo: "https://i.ibb.co/qL8g74Rt/images-29.jpg", stream: "https://ava2.store/upload/ava.m3u8" },
+            
+            // وەرزش (Sports)
+            { name: "Bein Sport", type: "sports", logo: "https://i.ibb.co/ycFrxJ3N/miswag-o-UHT2-K.jpg", stream: "http://103.205.17.194:8080/live/mohammamohammad/112233445566/228976.m3u8?token=HRVfWENfFAMTV1AFDFVXDAMAUwJSAF4EB1VcDQAAXFZSB1JdBwEDXFNDGhBKF0ZQUF48X1UVAgECWwACAx0bRxVSRWZZUxQDE1IBAwtUFhkTRhBTQ2hRQxJZGwQFCBcDVAAZAQIZBwkGQxoQTBBRR25SBFNfQxoJEi5WT1xdVVM6GAIXABceaEUkW1BcB1BQVQhDYwoXdFpeFkEOFXIQEidHR1VVYFNbeghCbhZWBwYfAEMeen9sfnxPGVlcWlwSIVJUUl8eFnRwJgQHDUNHQVNSE0YRQV1BCkMLFUdUTwhGBQIJEGRXX1ATX24WVgcGHwBBGhNDUV5VQQMFGRNJWwIVDRsBBA8OBFMFEBVBUU1FVhFYUFtnV1UVUFZQEwNcE1tbFRJYWGZVBFtTVwcWDxMDQRoTXktDEllXQFldFRAEXkNLUUNTGwtDBAEIURYZE1AMQ19DSkoSWRt8ZBMVEANPQ1xeRF9WX0MMEFRQQQ0TH0FUWENKUkQGZkFMQVwQXBUVFRJeRWZDBEVGSwZVWFRBQQwTBxofEgJaQVxHXG0FWFlKEg0UCBNNFF9YG2tWXl0NU1JDUVxeEBsPFwAbHkRaWFdZQ1lLbhFfVhtZFgQAA1oDCAIaTg==" },
+            { name: "Bein Sport 2", type: "sports", logo: "https://i.ibb.co/W4vyV9nY/images-28.jpg", stream: "http://103.205.17.194:8080/live/mohammamohammad/112233445566/228977.m3u8?token=HRVfWENfFAMTVgEKXVIFV1MGVQZTUwsCVgUOBwNTCgVVDgcIAVIDDVNDGhBKF0ZQUF48X1UVAgECWwACAh0bRxVSRWZZUxQDE1IBAwtUFhkTRhBTQ2hRQxJZGwQFCBcDVAAZAQIZBwkGQxoQTBBRR25SBFNfQxoJEi5WT1xdVVM6GAIXABceaEUkW1BcB1BQVQhDYwoXdFpeFkEOFXIQEidHR1VVYFNbeghCbhZWBwYfAEMeen9sfnxPGVlcWlwSIVJUUl8eFnRwJgQHDUNHQVNSE0YRQV1BCkMLFUdUTwhGBQIJEGRXX1ATX24WVgcGHwBBGhNDUV5VQQMFGRNJWwIVDRsBAwYJCVkPEBVBUU1FVhFYUFtnV1UVUFZQEwNcE1tbFRJYWGZVBFtTVwcWDxMDQRoTXktDEllXQFldFRAEXkNLUUNTGwtDBwABVhYZE1AMQ19DSkoSWRt8ZBMVEANPQ1xeRF9WX0MMEFRQQ0TH0FUWENKUkQGZkFMQVwQXBUVFRJeRWZDBEVGSwZVWFRBQQwTBxofEgJaQVxHXG0FWFlKEg0UCBNNFF9YG2tWXl0NU1JDUVxeEBsPFwAbHkRaWFdZQ1lLbhFfVhtZFgQAA1oAAwYaTg==" },
+            { name: "Gawher Sport", type: "sports", logo: "https://i.ibb.co/h1VKz810/Screenshot-20260606-221959.jpg", stream: "https://cdn.karwan.tv/gewher-sport/tracks-v1a1/mono.m3u8" },
+            { name: "Duhok Sport", type: "sports", logo: "https://i.ibb.co/ZRXgLbMf/duhok-tv-sport-528x297.jpg", stream: "http://krdtvappfree.ddns.net/Duhoksport/tracks-v1a1/mono.m3u8?token=yusfstore34" },
+            { name: "AVA Sport", type: "sports", logo: "https://i.ibb.co/35NfXDZk/download.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/300325.m3u8?token=SxRYWRUKFwgbAAMJAFQAVAEFUgVcBwQABAYJBwRQXwYBAQYLUwEDU10VGRsRFkcHWQtpD1xBDQsGAgtTBxkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwNBAQcCAFdAGRBcT0FcEAxUDmcCUxBRAFIaDFxNDV4ZGwxeaVRdCwNbVhsNFwhAThcLSxYUXFYWW1QaEFoIRkdYF1UUClYTDlkeG1RaTAwWRxsaXBQvaUEbGlNKTARcRlAMXhQKGgtRQAobGxdQET1HB0sSRANZDlJKFAgaURAZGw5RTm9bCQxbV1pDXFYMERdYGlcUShoOWFZfRlcTbUVQBxIMEglXUwAEG0o=" },
+            { name: "MMN Sport", type: "sports", logo: "https://i.ibb.co/bMTjRs77/mmn-tv-528x297.png", stream: "http://mmn.mypsx.net:1935/live/mmnhdsport/chunklist_w29500582.m3u8" },
+            { name: "NRT Sport", type: "sports", logo: "https://i.ibb.co/k6BnVvYS/images-3.jpg", stream: "https://live20.bozztv.com/giatv/giatv-NRT-SPORT/NRT-SPORT/chunks.m3u8" },
+            { name: "SPI Sport", type: "sports", logo: "https://i.ibb.co/dJj2wZR8/images-15.jpg", stream: "https://live20.bozztv.com/giatv/giatv-spi_sports_hd/spi_sports_hd/chunks.m3u8" },
+            { name: "Alwan Sport 1", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/315214.m3u8?token=SxRYWRUKFwgbUwUKU1VWU1pRAAQAV1QJBVFeVVcNW1RRAVYKVwZUUQ8VGRsRFkcHWQtpD1xBDQsHBwpQBhkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwNBAgEECVFAGRBcT0FcEAxUDmcCUxBRAFIaDFxNDV4ZGwxeaVRdCwNbVhsNFwlAThcLSxYUXFYWW1QaEFoIRkdYF1UUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpUUwEAChVI" },
+            { name: "Alwan Sport 2", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/315215.m3u8?token=SxRYWRUKFwgbUQBdUgEBWgFQUwIIUgMNVQBbUQcBX1RVBQgIU1JTVgEVGRsRFkcHWQtpD1xBDQsHBwpQBxkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwNBAwMGCVJAGRBcT0FcEAxUDmcCUxBRAFIaDFxNDV4ZGwxeaVRdCwNbVhsNFwlAThcLSxYUXFYWW1QaEFoIRkdYF1UUChpRUgYQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpUUwEGDhVI" },
+            { name: "Stv sport 1", type: "sports", logo: "https://i.ibb.co/HDKMgLFM/images-35.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/300322.m3u8?token=SxRYWRUKFwgbDwQIUgZXVAsFB18JVw5dUlYLBwQGWgVUUgIOAFBRBAAVGRsRFkcHWQtpD1xBDQsGAgtTABkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwMNRVpcFEQHTUZcRVtYDj1RB04PVQMaWVlNWl4UQ11bZgdVW1FWAkAPEAgVGRsLEUVAAghDClRPFVpfRkoARlAbWV5DXFRKQFZdTFlBSxtAD0BxNxRKGgZPTFNcSwhdWxtZElsDTV5AGRBQRGpLBxFBEF0HWwNKQQ0aBhAUQ19UQTxTWV5WAwFBW1ZZRhtYQARAFERbCVYKQ1dEbUgIVhcDDUVaXEU=" },
+            { name: "blue sport 1", type: "sports", logo: "https://i.ibb.co/Hv2Lm8F/Screenshot-20260612-011105.jpg", stream: "http://103.205.17.194:8080/live/mohammamohammad/112233445566/228976.m3u8?token=HRVfWENfFAMTV1AFDFVXDAMAUwJSAF4EB1VcDQAAXFZSB1JdBwEDXFNDGhBKF0ZQUF48X1UVAgECWwACAx0bRxVSRWZZUxQDE1IBAwtUFhkTRhBTQ2hRQxJZGwQFCBcDVAAZAQIZBwkGQxoQTBBRR25SBFNfQxoJEi5WT1xdVVM6GAIXABceaEUkW1BcB1BQVQhDYwoXdFpeFkEOFXIQEidHR1VVYFNbeghCbhZWBwYfAEMeen9sfnxPGVlcWlwSIVJUUl8eFnRwJgQHDUNHQVNSE0YRQV1BCkMLFUdUTwhGBQIJEGRXX1ATX24WVgcGHwBBGhNDUV5VQQMFGRNJWwIVDRsBBA8OBFMFEBVBUU1FVhFYUFtnV1UVUFZQEwNcE1tbFRJYWGZVBFtTVwcWDxMDQRoTXktDEllXQFldFRAEXkNLUUNTGwtDBAEIURYZE1AMQ19DSkoSWRt8ZBMVEANPQ1xeRF9WX0MMEFRQQQ0TH0FUWENKUkQGZkFMQVwQXBUVFRJeRWZDBEVGSwZVWFRBQQwTBxofEgJaQVxHXG0FWFlKEg0UCBNNFF9YG2tWXl0NU1JDUVxeEBsPFwAbHkRaWFdZQ1lLbhFfVhtZFgQAA1oDCAIaTg==" },
+            { name: "blue sport 2", type: "sports", logo: "https://i.ibb.co/Hv2Lm8F/Screenshot-20260612-011105.jpg", stream: "https://prod-fastly-eu-central-1.video.pscp.tv/Transcoding/v1/hls/WsL3YYDwQfsnHhAAMVWpF1-vvrQhpPc2KnPxE5l6ajPGAIWhz4sfYgkPl6AFDJLeV2YGTS6q6I6ZvaH-5JOQ_Q/non_transcode/eu-central-1/periscope-replay-direct-prod-eu-central-1-public/master_dynamic_highlatency.m3u8?type=live" },
+            { name: "blue sport 3", type: "sports", logo: "https://i.ibb.co/Hv2Lm8F/Screenshot-20260612-011105.jpg", stream: "https://prod-fastly-eu-central-1.video.pscp.tv/Transcoding/v1/hls/zfIdmopej5G4pVw28bDU0A27WYGAHBYR3LseP17-gOlvp_Xy5dyoa66CTRyFf_KrwHHCBptHlmbqtmFezyO3AQ/non_transcode/eu-central-1/periscope-replay-direct-prod-eu-central-1-public/master_dynamic_highlatency.m3u8?type=live" },
+
+            // فیلم (Movies)
+            { name: "Avar TV", type: "movies", logo: "https://i.ibb.co/b51Lmw7Q/images-17.jpg", stream: "https://avr.host247.net/live/AvarTv/playlist.m3u8" },
+            { name: "Hormzyar HD", type: "movies", logo: "https://i.ibb.co/jk97r8Fv/images-20.jpg", stream: "http://avrstream.com:1935/live/HormzyarHD/playlist.m3u8" },
+            { name: "Dunya TV", type: "movies", logo: "https://i.ibb.co/gpN1h0m/PNepd-LS.jpg", stream: "https://live20.bozztv.com/giatv/giatv-DniaTV/DniaTV/playlist.m3u8" },
+            { name: "Bask HD", type: "movies", logo: "https://i.ibb.co/x8c8mnVR/images-27.jpg", stream: "http://baskhd.ddns.net:40/live/baskhd/playlist.m3u8" },
+            { name: "barin family", type: "movies", logo: "https://i.ibb.co/xSpqQ6Hv/H0C79q-X.jpg", stream: "http://baskhd.ddns.net:40/live/BarinfamilyHD/mono.m3u8" },
+            { name: "Barin dom", type: "movies", logo: "https://i.ibb.co/mrsRYS95/PUq-Dt-PG.jpg", stream: "http://87.98.145.107/edge/streambarin-doc/chunks.m3u8?type=live" },
+            { name: "Next TV", type: "movies", logo: "https://i.ibb.co/21BjhG2b/images-11.jpg", stream: "https://next.badinan.xyz/nexttv/FHD/playlist.m3u8" },
+            { name: "bnar family", type: "movies", logo: "https://i.ibb.co/XrXtjjLm/4XKh-H9F.jpg", stream: "https://cdn.karwan.tv/bnar-family/index.m3u8" },
+            { name: "MMN Movies", type: "movies", logo: "https://i.ibb.co/bMTjRs77/mmn-tv-528x297.png", stream: "http://mmn.mypsx.net:1935/live/mmnhdmovies/playlist.m3u8" },
+            { name: "MMN Action", type: "movies", logo: "https://i.ibb.co/bMTjRs77/mmn-tv-528x297.png", stream: "http://mmn.mypsx.net:1935/live/mmnhdaction/playlist.m3u8" },
+            { name: "Barin Movie HD", type: "movies", logo: "https://i.ibb.co/LDMs38sX/barin-movies-1.png", stream: "https://cdn.karwan.tv/barin-movies/index.m3u8" },
+            { name: "bnar action", type: "movies", logo: "https://i.ibb.co/Kzx7bgCQ/i-QPy-SGB.jpg", stream: "https://cdn.karwan.tv/bnar-action/index.m3u8" },
+            { name: "bnar movie", type: "movies", logo: "https://i.ibb.co/m5QWrCvR/66Fv1i-Q.jpg", stream: "https://cdn.karwan.tv/bnar-movies/index.m3u8" },
+            { name: "Red TV", type: "movies", logo: "https://i.ibb.co/B5KQ3227/images-7.jpg", stream: "http://avrstream.com:1935/live/REDTV/playlist.m3u8" },
+            { name: "Zed tv plus", type: "movies", logo: "https://i.ibb.co/Swzck06K/images-30.jpg", stream: "http://109.71.252.138/Zedplus/tracks-v1a1/mono.m3u8?token=yusfstore3434fyusfstore3434yusfstore3434yusfstore3434yusfstore3434fwestrqwerwefwefrwefwefwes&type=live" },
+            { name: "Stv", type: "movies", logo: "https://i.ibb.co/TqkhYHsV/Screenshot-20260610-023101.jpg", stream: "https://live20.bozztv.com/giatv/giatv-stv/stvone/chunks.m3u8" },
+            { name: "Infinity tv", type: "movies", logo: "https://i.ibb.co/zTjtwBb1/IMG-20260610-023434-073.jpg", stream: "https://cdn.karwan.tv/infinity-tv/tracks-v1a1/mono.m3u8" },
+            { name: "Befrin TV", type: "movies", logo: "https://i.ibb.co/7JJDV37c/Screenshot-20260610-133555.jpg", stream: "https://cdn.karwan.tv/befrin-tv/index.m3u8" },
+            { name: "Derin TV", type: "movies", logo: "https://i.ibb.co/M5y1qkqn/Screenshot-20260610-133919.jpg", stream: "http://baskhd.ddns.net:40/live/Derin/index.m3u8?checkedby:Halabja88" },
+            { name: "Jamawar TV", type: "movies", logo: "https://i.ibb.co/nNFkYRgZ/images-31.jpg", stream: "https://avr.host247.net/JamawarTv/JamawarTv/playlist.m3u8" },
+            { name: "Niroj Hd", type: "movies", logo: "https://i.ibb.co/qYD0Hf8F/Screenshot-20260610-235452.jpg", stream: "https://live20.bozztv.com/giatv/giatv-Shawkat/Niroj_HD/playlist.m3u" },
+            
+            // مۆسیقا و قورئان (Music & Quran)
+            { name: "Mix Kurdish", type: "music", logo: "https://i.ibb.co/mr9SgBKJ/images-8.jpg", stream: "http://avrstream.com:1935/live/Mix-kurdy/playlist.m3u8" },
+            { name: "Animal Box", type: "music", logo: "https://i.ibb.co/V0v6kYM7/images-12.jpg", stream: "https://live20.bozztv.com/giatv/giatv-animalbox/animalbox/chunks.m3u8" },
+            { name: "Parwarda Duhok", type: "music", logo: "https://i.ibb.co/93vzMY5k/parwarday-tv.jpg", stream: "https://parwarda.unitedmixmedia.tv/Parwardayi_Duhok/tracks-v2a1/mono.m3u8" },
+            { name: "med music", type: "music", logo: "https://i.ibb.co/k20n7xrj/med-muzik-tv-528x297-1.webp", stream: "http://54.36.110.140/live3/live3.m3u8" },
+            { name: "Soze TV", type: "music", logo: "https://kimi-web-img.moonshot.cn/img/karwan.tv/5c190bbf4864ba60e28f51eedbba832d806655f6.jpg", stream: "https://live20.bozztv.com/giatv/giatv-sozetv/sozetv/chunks.m3u8" },
+            { name: "Farmuda HD", type: "music", logo: "https://i.ibb.co/mVLmP8dJ/images-25.jpg", stream: "https://avr.host247.net/live/FarmodaTV/playlist.m3u8" },
+            { name: "Zarok TV", type: "music", logo: "https://i.ibb.co/pvrGnx34/images-24.jpg", stream: "https://zindisorani.zaroktv.com.tr/hls/stream.m3u8" },
+            { name: "4Kurd", type: "music", logo: "https://i.ibb.co/B5LNMBhY/Screenshot-20260610-142454.jpg", stream: "https://4kuhls.persiana.live/hls/stream.m3u8" },
+            { name: "Afarin baxcha", type: "music", logo: "https://i.ibb.co/QFYYFdj4/images-32.jpg", stream: "https://5dcabf026b188.streamlock.net/afarinTV/livestream/playlist.m3u8" },
+            { name: "Afarin kids", type: "music", logo: "https://i.ibb.co/bgCZpBLq/images-33.jpg", stream: "https://5dcabf026b188.streamlock.net/afarinTV/livestream/playlist.m3u8" },
+            { name: "Nat geo world", type: "music", logo: "https://i.ibb.co/qFVZx27T/Screenshot-20260610-153740.jpg", stream: "https://stream8.cinerama.uz/1042/tracks-v1a1/mono.m3u8" },
+            { name: "Duhok TV", type: "music", logo: "https://i.ibb.co/GvkLrLLp/images-2.png", stream: "http://103.205.17.194:8080/live/mohammamohammad/112233445566/180148.m3u8?token=HRVfWENfFAMTUldRCAcNUwBSWgZUVVkGUgYIVwAIXAsEAgBbAA5UWgNDGhBKF0ZQUF48X1UVAgIIUwgBDR0bRxVSRWZZUxQDE1IBAwtUFhkTRhBTQ2hRQxJZGwQFCBcDVAAZAQIZBwkGQxoQTBBRR25SBFNfQxoJEi5WT1xdVVM6GAIXABceaEUkW1BcB1BQVQhDYwoXdFpeFkEOFXIQEidHR1VVYFNbeghCbhZWBwYfAEMeen9sfnxPGVlcWlwSIVJUUl8eFnRwJgQHDUNHQVNSE0YRQV1BCkMLFUdUTwhGBQIJEGRXX1ATX24WVgcGHwBBGhNDUV5VQQMFGRNJWwIVDRsHAQcJBlUUHhsGTEFUQQ1XXWhcVkYKWlAXC1dHClsbG19ZaV1UDFdcXUEOFwERTxRYREgRCg1MWVkdG1APQ0VYRFIUAxNTBwYIQRgXUlwWWEVFQREKQXBkFx0bVx5DUldDXllXE1sUXwoWDBcdEQFfRUVZR1U8TUxFVBsIRBUbG1lEaUtUEkJAXAJZUEMRWRQBFRQRUQBNXENUZlEJWUQbChUHGx1DW1NBPFdaX10GVUVeV11DQQMXBBMVEAtYWVBEWERmQQhSEANBBQUIAlMBCBVF" },
+            { name: "Kurdmax kurmanji", type: "music", logo: "https://i.ibb.co/vCgsLWpQ/images-34.jpg", stream: "http://103.205.17.194:8080/live/mohammamohammad/112233445566/180108.m3u8?token=HRVfWENfFAMTVAMKD1ECU1MFBgcGDgEABFRcAQcJDAteUlUMVFUHAVdDGhBKF0ZQUF48X1UVAgIIUwgFDR0bRxVSRWZZUxQDE1IBAwtUFhkTRhBTQ2hRQxJZGwQFCBcDVAAZAQIZBwkGQxoQTBBRR25SBFNfQxoJEippYWNiVFMUQ1JLQ2dEVhNNFEZQDlEXCwNPFEFeXBEKQQoCDAEPBlMVGxtVT0JcQw9XXmYHUUNYUAYUC1lNX1xPG1pbbl1XC1ZZXRINFAkTTRRbShMWD19GD1odFVpaRBFYQVATAxBRBg8bHBVVVkQPQkBAQQ4XeGJBGhNSQEdVDUpcWl8bCERaBEwIFRobUwhCQFgXUWpFShNTEw0aERxBUEZqQ1xBEkVSWF1SRBsLQwYQFUFVVkVaFVNuVFddQ0EDFwQTFRALVk9mU1hYV1QCQltWDUcXCxFSFB0VVVxeCk1aR25JWwIVDRsBBw8JA1MCEEQ=" }
+        ];
+
+        const video = document.getElementById('hlsVideo');
+        let hlsInstance = null;
+        let currentPlayingUrl = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderDashboard();
+            renderAllChannelsPage();
+        });
+
+        function triggerNotification(msg) {
+            const container = document.getElementById('customAlert');
+            const messageSlot = document.getElementById('alertMessage');
+            messageSlot.innerText = msg;
+            container.style.opacity = '1';
+            setTimeout(() => { container.style.opacity = '0'; }, 3000);
+        }
+
+        // دروستکرنا کارتی ب پشتگیرییا تەمام یا تەلەفزیۆنێ (tabindex="0")
+        function createCard(item) {
+            const displayType = item.type === 'music' ? 'مۆسیقا' : item.type;
+            return `
+                <div class="channel-card search-target" tabindex="0" data-name="${item.name.toLowerCase()}" data-type="${item.type}" onclick="triggerStreamingOverlay('${item.stream}', '${item.name}', '${item.type}')">
+                    <div class="logo-container">
+                        <span class="badge ${item.type}">${displayType}</span>
+                        <img src="${item.logo}" alt="${item.name}" loading="lazy">
+                    </div>
+                    <span class="channel-name">${item.name}</span>
+                </div>`;
+        }
+
+        function renderDashboard() {
+            const sectors = { news: '', sports: '', movies: '', music: '' };
+            database.forEach(item => { sectors[item.type] += createCard(item); });
+            Object.keys(sectors).forEach(key => { document.getElementById(`grid-${key}`).innerHTML = sectors[key]; });
+        }
+
+        function renderAllChannelsPage() {
+            let content = '';
+            database.forEach(item => { content += createCard(item); });
+            document.getElementById('grid-all-page').innerHTML = content;
+        }
+
+        // دروستکرنا دۆلابا ل بنی شاشێ تەنێ بۆ هەمان کاتیگۆری یا کەنالی
+        function renderVideoPlayerBottomCarousel(category, activeName) {
+            const scroller = document.getElementById('bottomCarousel');
+            let content = '';
+            
+            // فلتەرکرنا کەنالان تەنێ بۆ هەمان کاتیگۆری
+            const filtered = database.filter(item => item.type === category);
+            
+            filtered.forEach(item => {
+                const isActive = item.name === activeName ? 'active' : '';
+                content += `
+                    <div class="stream-icon carousel-target ${isActive}" tabindex="0" data-name="${item.name}" onclick="initiateFastPlayback('${item.stream}', '${item.name}', '${item.type}', event)">
+                        <img src="${item.logo}" alt="${item.name}">
+                    </div>`;
+            });
+            scroller.innerHTML = content;
+        }
+
+        function switchMainTab(pageId, navButton) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            navButton.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goToCategory(cat) {
+            switchMainTab('channelsPage', document.getElementById('nav-channels'));
+            filterCategory(cat, document.getElementById('chip-' + cat));
+        }
+
+        function filterCategory(cat, element) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            const allCards = document.querySelectorAll('#grid-all-page .channel-card');
+            allCards.forEach(card => {
+                if(cat === 'all' || card.getAttribute('data-type') === cat) card.style.display = 'block';
+                else card.style.display = 'none';
+            });
+        }
+
+        function setScrollerActiveHighlight(channelName) {
+            document.querySelectorAll('.carousel-target').forEach(icon => {
+                icon.classList.remove('active');
+                if (icon.getAttribute('data-name') === channelName) {
+                    icon.classList.add('active');
+                    icon.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 }
-            };
+            });
+        }
 
-            @Override
-            protected void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                setContentView(R.layout.activity_main);
-
-                playerView = findViewById(R.id.main_player_view);
-                playerContainer = findViewById(R.id.player_container);
-                wv = findViewById(R.id.main_web_view);
-                loadingSpinner = findViewById(R.id.native_loading_spinner);
-
-                wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-                wv.setBackgroundColor(Color.TRANSPARENT);
-
-                wv.setFocusable(true);
-                wv.setFocusableInTouchMode(true);
-                wv.requestFocus();
-
-                playerContainer.setVisibility(View.GONE);
-
-                DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-                        .setBufferDurationsMs(1000, 4000, 800, 1000)
-                        .build();
-
-                player = new ExoPlayer.Builder(this)
-                        .setLoadControl(loadControl)
-                        .build();
-                playerView.setPlayer(player);
-
-                player.setPlayWhenReady(true); 
-
-                View closeBtn = playerView.findViewById(R.id.custom_close_btn);
-                if (closeBtn != null) {
-                    closeBtn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            stopAndHidePlayer();
-                        }
-                    });
-                }
-
-                playerView.setFullscreenButtonClickListener(new StyledPlayerView.FullscreenButtonClickListener() {
-                    @Override
-                    public void onFullscreenButtonClick(boolean isFullScreen) {
-                        toggleFullscreen(isFullScreen);
-                    }
-                });
-
-                player.addListener(new Player.Listener() {
-                    @Override
-                    public void onPlaybackStateChanged(int state) {
-                        if (state == Player.STATE_BUFFERING) {
-                            if (loadingSpinner != null) {
-                                loadingSpinner.setVisibility(View.VISIBLE);
-                            }
-                        } else if (state == Player.STATE_READY) {
-                            if (loadingSpinner != null) {
-                                loadingSpinner.setVisibility(View.GONE);
-                            }
-                            retryCount = 0; // زڤڕاندنا دەورێ ب تەمامی سفر دبیتەوە دەمێ کار دکەت
-                            retryHandler.removeCallbacks(retryRunnable);
-                        } else if (state == Player.STATE_ENDED) {
-                            if (loadingSpinner != null) {
-                                loadingSpinner.setVisibility(View.GONE);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onPlayerError(PlaybackException error) {
-                        if (loadingSpinner != null) {
-                            loadingSpinner.setVisibility(View.VISIBLE);
-                        }
-                        // 🟢 سیستمێ زڤڕاندنا خۆکار هەر ٣ چرکە جاران ب بێ ڕاوەستاندنا تەمام یا ئەپی
-                        if (retryCount < MAX_RETRIES) {
-                            retryCount++;
-                            retryHandler.removeCallbacks(retryRunnable);
-                            retryHandler.postDelayed(retryRunnable, 3000);
-                        } else {
-                            if (loadingSpinner != null) {
-                                loadingSpinner.setVisibility(View.GONE);
-                            }
-                            Toast.makeText(MainActivity.this, "ئاریشە د پەخشی دا هەیە!", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-                WebSettings ws = wv.getSettings();
-                ws.setJavaScriptEnabled(true);
-                ws.setDomStorageEnabled(true);
-                ws.setAllowFileAccess(true);
+        // HYBRID PLAYBACK DETECTOR
+        function triggerStreamingOverlay(streamUrl, channelName, category) {
+            if (window.AndroidBridge) {
+                // ١. د ناڤ ئەپڵیکەیشنێ دا: ڤیدیۆیا نەیف کار پێ دکەت
+                window.AndroidBridge.playInExo(streamUrl, channelName);
                 
-                ws.setUseWideViewPort(true);
-                ws.setLoadWithOverviewMode(true);
-                ws.setSupportZoom(false);
-                ws.setBuiltInZoomControls(false);
-                ws.setDisplayZoomControls(false);
-                
-                ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
-                wv.clearCache(true);
-                
-                ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-                
-                wv.addJavascriptInterface(new Object() {
-                    @JavascriptInterface
-                    public void playInExo(final String url, final String name) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (url != null && !url.isEmpty()) {
-                                    retryCount = 0; // پاککرنەوەی دەستپێکی
-                                    retryHandler.removeCallbacks(retryRunnable);
-                                    
-                                    if (playerContainer != null) {
-                                        playerContainer.setVisibility(View.VISIBLE);
-                                    }
-                                    playerView.setVisibility(View.VISIBLE);
-                                    if (loadingSpinner != null) {
-                                        loadingSpinner.setVisibility(View.VISIBLE);
-                                    }
+                // لۆدکرنا لایەرێ فەرمی یێ کەنالان ل خوارێ
+                const overlay = document.getElementById('streamPage');
+                overlay.classList.add('active');
+                renderVideoPlayerBottomCarousel(category, channelName);
+            } else {
+                // ٢. د ناڤ کڕۆمێ دا: مینی پلەیەر ڤەدکەت
+                const overlay = document.getElementById('streamPage');
+                overlay.classList.add('active');
+                renderVideoPlayerBottomCarousel(category, channelName);
+                initiateFastPlayback(streamUrl, channelName, category, null);
+            }
+        }
 
-                                    MediaItem mediaItem = MediaItem.fromUri(Uri.parse(url));
-                                    player.setMediaItem(mediaItem);
-                                    player.prepare();
-                                    player.play();
-                                }
-                            }
-                        });
-                    }
-
-                    @JavascriptInterface
-                    public void stopExo() {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                stopAndHidePlayer();
-                            }
-                        });
-                    }
-                }, "AndroidBridge");
-
-                wv.setWebViewClient(new WebViewClient() {
-                    @Override
-                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                        String url = request.getUrl().toString();
-                        return handleCustomUri(view, url);
-                    }
-
-                    @SuppressWarnings("deprecation")
-                    @Override
-                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                        return handleCustomUri(view, url);
-                    }
-
-                    private boolean handleCustomUri(WebView view, String url) {
-                        if (url == null || url.startsWith("http://") || url.startsWith("https://")) {
-                            return false; 
-                        }
-                        try {
-                            if (url.startsWith("intent://")) {
-                                Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-                                if (intent != null) {
-                                    view.stopLoading();
-                                    PackageManager packageManager = view.getContext().getPackageManager();
-                                    if (intent.resolveActivity(packageManager) != null) {
-                                        view.getContext().startActivity(intent);
-                                        return true;
-                                    }
-                                    String fallbackUrl = intent.getStringExtra("browser_fallback_url");
-                                    if (fallbackUrl != null) {
-                                        view.loadUrl(fallbackUrl);
-                                        return true;
-                                    }
-                                }
-                            } else {
-                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                                view.getContext().startActivity(intent);
-                                return true;
-                            }
-                        } catch (Exception e) {
-                            Toast.makeText(MainActivity.this, "ئەڤ ئەپڵیکەیشنە ل سەر تەلەفۆنا تە نینە!", Toast.LENGTH_SHORT).show();
-                        }
-                        return true;
-                    }
-
-                    @Override
-                    public void onPageFinished(WebView view, String url) {
-                        String js = "window.triggerStreamingOverlay = function(url, name) { window.AndroidBridge.playInExo(url, name); };" +
-                                    "window.exitStreamOverlay = function() { window.AndroidBridge.stopExo(); };";
-                        wv.evaluateJavascript(js, null);
-                    }
-
-                    @Override
-                    public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                        if (!failingUrl.startsWith("intent://") && !failingUrl.startsWith("tg://")) {
-                            Toast.makeText(MainActivity.this, "ئاریشە د گرێدانا ئینتەرنێتێ دا هەیە!", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
-                
-                wv.setWebChromeClient(new WebChromeClient());
-                wv.loadUrl("https://mansorzebari86-jpg.github.io/kurdtv-app/");
+        // HLS.js PLAYBACK ENGINE FOR WEB BROWSER
+        function initiateFastPlayback(streamUrl, channelName, category, event) {
+            if (event) event.stopPropagation();
+            setScrollerActiveHighlight(channelName);
+            
+            if (window.AndroidBridge) {
+                window.AndroidBridge.playInExo(streamUrl, channelName);
+                return;
             }
 
-            private void stopAndHidePlayer() {
-                retryHandler.removeCallbacks(retryRunnable);
-                if (player != null) {
-                    player.stop();
-                    player.clearMediaItems();
-                }
-                if (loadingSpinner != null) {
-                    loadingSpinner.setVisibility(View.GONE);
-                }
-                if (playerContainer != null) {
-                    playerContainer.setVisibility(View.GONE);
-                }
-                playerView.setVisibility(View.GONE);
-                if (isFullscreen) {
-                    toggleFullscreen(false);
-                }
+            currentPlayingUrl = streamUrl;
+            const loader = document.getElementById('loadingSpinner');
+            loader.style.display = 'block';
+
+            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+            video.pause(); video.removeAttribute('src'); video.load();
+
+            if (Hls.isSupported()) {
+                hlsInstance = new Hls({
+                    maxMaxBufferLength: 20, 
+                    maxBufferLength: 8, 
+                    enableWorker: true,
+                    lowLatencyMode: true, 
+                    startFragPrefetch: true
+                });
+                hlsInstance.loadSource(streamUrl);
+                hlsInstance.attachMedia(video);
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = streamUrl;
+                video.addEventListener('loadedmetadata', () => {
+                    video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
+                });
+            } else {
+                loader.style.display = 'none';
+                triggerNotification("ئەڤ لێگەڕۆکە پشتگیرییا پەخشی ناکەت.");
             }
 
-            private void toggleFullscreen(boolean fullscreen) {
-                isFullscreen = fullscreen;
-                if (fullscreen) {
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                    wv.setVisibility(View.GONE);
-                    
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                    );
-                    playerContainer.setLayoutParams(params);
+            video.onplaying = () => { loader.style.display = 'none'; };
+            video.onwaiting = () => { loader.style.display = 'block'; };
+        }
+
+        function exitStreamOverlay(event) {
+            if (event) event.stopPropagation();
+            document.getElementById('streamPage').classList.remove('active');
+            
+            if (window.AndroidBridge) {
+                window.AndroidBridge.stopExo();
+            } else {
+                if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+                video.pause(); video.removeAttribute('src'); video.load();
+            }
+        }
+
+        function toggleScreenOrientation(event) {
+            if (event) event.stopPropagation();
+            if (window.AndroidBridge) {
+                const isLandscape = window.innerHeight < window.innerWidth;
+                window.AndroidBridge.toggleLandscape(!isLandscape);
+            } else {
+                const overlay = document.getElementById('streamPage');
+                if (!document.fullscreenElement) {
+                    if (overlay.requestFullscreen) overlay.requestFullscreen();
                 } else {
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                    wv.setVisibility(View.VISIBLE);
-
-                    int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            heightPx
-                    );
-                    playerContainer.setLayoutParams(params);
-                }
-            }
-
-            @Override
-            public void onBackPressed() {
-                if (isFullscreen) {
-                    toggleFullscreen(false);
-                } else if (playerView.getVisibility() == View.VISIBLE) {
-                    stopAndHidePlayer();
-                } else if (wv.canGoBack()) {
-                    wv.goBack();
-                } else {
-                    super.onBackPressed();
-                }
-            }
-
-            @Override
-            protected void onPause() {
-                super.onPause();
-                if (player != null) {
-                    player.pause();
-                }
-            }
-
-            @Override
-            protected void onDestroy() {
-                super.onDestroy();
-                retryHandler.removeCallbacks(retryRunnable);
-                if (player != null) {
-                    player.release();
-                    player = null;
+                    if (document.exitFullscreen) document.exitFullscreen();
                 }
             }
         }
-        EOF
-        
-        gradle wrapper --gradle-version 8.5
-        chmod +x gradlew
-
-    - name: Build Premium ExoPlayer APK
-      run: ./gradlew assembleDebug --stacktrace
-
-    - name: Upload Finished ExoPlayer APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: KurdTV-ExoPlayer-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+    </script>
+</body>
+</html>
