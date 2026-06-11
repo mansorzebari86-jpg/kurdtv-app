@@ -30,7 +30,7 @@ jobs:
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/drawable
         
-        # 🟢 دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما داخستنێ یا پاك
+        # دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما داخستنێ یا پاك
         cat << 'EOF' > app/src/main/res/drawable/ic_close.xml
         <vector xmlns:android="http://schemas.android.com/apk/res/android"
             android:width="24dp"
@@ -43,7 +43,7 @@ jobs:
         </vector>
         EOF
 
-        # 🟢 دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما تەمام شاشەکردنێ (Fullscreen Arrows)
+        # دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما تەمام شاشەکردنێ (Fullscreen Arrows)
         cat << 'EOF' > app/src/main/res/drawable/ic_fullscreen.xml
         <vector xmlns:android="http://schemas.android.com/apk/res/android"
             android:width="24dp"
@@ -56,7 +56,7 @@ jobs:
         </vector>
         EOF
         
-        # دانانا فایلێ ناوخۆیی وەک پاشکەوت
+        # دانانا فایلا HTML
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
         # کۆنتڕۆلکرنا لۆگۆیێ فەرمی یێ بەرنامەی
@@ -111,7 +111,7 @@ jobs:
         }
         EOF
         
-        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی
+        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی (ب لادانا ب تەمامی یا لایەرێ خەلەتییا ٨ چرکە یا ناوخۆیی)
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -158,7 +158,7 @@ jobs:
         </LinearLayout>
         EOF
 
-        # 🟢 دروستکردنا کۆنتڕۆلێن نەیف یێن پاقژ ب وێنەیێن ڤێکتۆر یێن نوو یێن ic_close و ic_fullscreen
+        # دروستکردنا کۆنتڕۆلێن نەیف یێن پاقژ ب وێنەیێن ڤێکتۆر یێن نوو یێن ic_close و ic_fullscreen
         cat << 'EOF' > app/src/main/res/layout/custom_exo_controls.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -246,6 +246,7 @@ jobs:
         import android.graphics.Color;
         import android.net.Uri;
         import android.os.Bundle;
+        import android.os.Handler; // 🟢 چارەسەریا فەرمی یا هاندلەرێ زڤڕاندنا خۆکار
         import android.view.View;
         import android.view.ViewGroup;
         import android.view.WindowManager;
@@ -264,6 +265,7 @@ jobs:
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
         import com.google.android.exoplayer2.Player;
+        import com.google.android.exoplayer2.PlaybackException;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
 
         public class MainActivity extends AppCompatActivity {
@@ -273,6 +275,20 @@ jobs:
             private FrameLayout playerContainer; 
             private ProgressBar loadingSpinner;
             private boolean isFullscreen = false;
+
+            // 🟢 مەکینەیا زڤڕاندنا خۆکار (Auto-Retry Runner) ب بێ داخستن
+            private int retryCount = 0;
+            private final int MAX_RETRIES = 10;
+            private final Handler retryHandler = new Handler();
+            private final Runnable retryRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (player != null) {
+                        player.prepare();
+                        player.play();
+                    }
+                }
+            };
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -293,7 +309,6 @@ jobs:
 
                 playerContainer.setVisibility(View.GONE);
 
-                // مەکینەیا لۆدکرنا خێرا
                 DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                         .setBufferDurationsMs(1000, 4000, 800, 1000)
                         .build();
@@ -305,7 +320,6 @@ jobs:
 
                 player.setPlayWhenReady(true); 
 
-                // دەستنیشانکرنا کلیکێ ل سەر دوکما سور یا کەتوارا دەرچوونێ ژ بەخشکرنێ
                 View closeBtn = playerView.findViewById(R.id.custom_close_btn);
                 if (closeBtn != null) {
                     closeBtn.setOnClickListener(new View.OnClickListener() {
@@ -334,6 +348,8 @@ jobs:
                             if (loadingSpinner != null) {
                                 loadingSpinner.setVisibility(View.GONE);
                             }
+                            retryCount = 0; // زڤڕاندنا دەورێ ب تەمامی سفر دبیتەوە دەمێ کار دکەت
+                            retryHandler.removeCallbacks(retryRunnable);
                         } else if (state == Player.STATE_ENDED) {
                             if (loadingSpinner != null) {
                                 loadingSpinner.setVisibility(View.GONE);
@@ -342,11 +358,21 @@ jobs:
                     }
 
                     @Override
-                    public void onPlayerError(com.google.android.exoplayer2.PlaybackException error) {
+                    public void onPlayerError(PlaybackException error) {
                         if (loadingSpinner != null) {
-                            loadingSpinner.setVisibility(View.GONE);
+                            loadingSpinner.setVisibility(View.VISIBLE);
                         }
-                        Toast.makeText(MainActivity.this, "ئاریشە د پەخشی دا هەیە!", Toast.LENGTH_SHORT).show();
+                        // 🟢 سیستمێ زڤڕاندنا خۆکار هەر ٣ چرکە جاران ب بێ ڕاوەستاندنا تەمام یا ئەپی
+                        if (retryCount < MAX_RETRIES) {
+                            retryCount++;
+                            retryHandler.removeCallbacks(retryRunnable);
+                            retryHandler.postDelayed(retryRunnable, 3000);
+                        } else {
+                            if (loadingSpinner != null) {
+                                loadingSpinner.setVisibility(View.GONE);
+                            }
+                            Toast.makeText(MainActivity.this, "ئاریشە د پەخشی دا هەیە!", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
 
@@ -373,6 +399,9 @@ jobs:
                             @Override
                             public void run() {
                                 if (url != null && !url.isEmpty()) {
+                                    retryCount = 0; // پاککرنەوەی دەستپێکی
+                                    retryHandler.removeCallbacks(retryRunnable);
+                                    
                                     if (playerContainer != null) {
                                         playerContainer.setVisibility(View.VISIBLE);
                                     }
@@ -465,6 +494,7 @@ jobs:
             }
 
             private void stopAndHidePlayer() {
+                retryHandler.removeCallbacks(retryRunnable);
                 if (player != null) {
                     player.stop();
                     player.clearMediaItems();
@@ -531,6 +561,7 @@ jobs:
             @Override
             protected void onDestroy() {
                 super.onDestroy();
+                retryHandler.removeCallbacks(retryRunnable);
                 if (player != null) {
                     player.release();
                     player = null;
