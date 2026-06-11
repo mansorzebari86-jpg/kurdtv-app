@@ -61,31 +61,7 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        cat << 'EOF' > app/build.gradle
-        plugins { id 'com.android.application' }
-        android {
-            namespace 'com.kurdtv.vip'
-            compileSdk 34
-            defaultConfig {
-                applicationId "com.kurdtv.vip"
-                minSdk 21
-                targetSdk 34
-                versionCode 1
-                versionName "1.0.0"
-            }
-            compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
-            }
-        }
-        dependencies {
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-            implementation 'com.google.android.material:material:1.11.0'
-            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
-        }
-        EOF
-        
-        # دیزاینێ نوو: یەکگرتنا ڤیدیۆیێ د ناڤ لایەرێ ٢٤٠ دا
+        # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -229,8 +205,8 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.FrameLayout; // 🟢 چارەسەریا فەرمی یا ناساندنا FrameLayout
-        import android.widget.LinearLayout; // 🟢 ناساندنا LinearLayout
+        import android.widget.FrameLayout;
+        import android.widget.LinearLayout;
         import android.widget.ProgressBar;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
@@ -238,7 +214,10 @@ jobs:
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
         import com.google.android.exoplayer2.Player;
+        import com.google.android.exoplayer2.PlaybackException;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
+        import com.google.android.exoplayer2.upstream.DefaultHttpDataSource; // 🟢 مەکینەیا ناساندنا لێنکێن گرافیکی
+        import com.google.android.exoplayer2.source.DefaultMediaSourceFactory; // 🟢 مەکینەیا بژاردەیا بەخشێ داینامیکی
 
         public class MainActivity extends AppCompatActivity {
             private WebView wv;
@@ -267,17 +246,30 @@ jobs:
 
                 playerContainer.setVisibility(View.GONE);
 
-                // مەکینەیا لۆدکرنا خێرا
+                // 🟢 تەکنیكا ئێکجار پێشکەفتی یا بەفرینێ (LOAD CONTROL FOR LOW-LATENCY)
                 DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-                        .setBufferDurationsMs(1000, 4000, 800, 1000)
+                        .setBufferDurationsMs(
+                            25000, // minBufferMs (کاشکرنا پێشوەخت د زامنی ٢٥ چرکەدا بۆ نەپچڕانێ)
+                            50000, // maxBufferMs
+                            1500,  // bufferForPlaybackMs (لۆدکرن دەستبەجێ د ١.٥ چرکەدا)
+                            2000   // bufferForPlaybackAfterRebufferMs
+                        )
+                        .setPrioritizeTimeOverSizeThresholds(true)
                         .build();
 
+                // 🟢 دروستکردنا سورسێ گواستنا ترافیکێ ب بێ بەستن ل سەر سێرڤەری (Throttling Bypass Factory)
+                DefaultHttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory()
+                        .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36") // لۆدکرنا ب شێوازی کڕۆمێ
+                        .setConnectTimeoutMs(8000)
+                        .setReadTimeoutMs(8000)
+                        .setAllowCrossProtocolRedirects(true);
+
                 player = new ExoPlayer.Builder(this)
+                        .setMediaSourceFactory(new DefaultMediaSourceFactory(this, httpDataSourceFactory)) // چالاککرنا گواستنا فەرمی یا بێ ڕێگر
                         .setLoadControl(loadControl)
                         .build();
                 playerView.setPlayer(player);
 
-                // ئۆتۆپلەی فەرمی بێ دوکما play یا کەتوار ل ناڤەڕاستێ
                 player.setPlayWhenReady(true); 
 
                 // دەستنیشانکرنا کلیکێ ل سەر دوکما سور یا کەتوارا دەرچوونێ ژ بەخشکرنێ
@@ -317,7 +309,7 @@ jobs:
                     }
 
                     @Override
-                    public void onPlayerError(com.google.android.exoplayer2.PlaybackException error) {
+                    public void onPlayerError(PlaybackException error) {
                         if (loadingSpinner != null) {
                             loadingSpinner.setVisibility(View.GONE);
                         }
@@ -329,6 +321,12 @@ jobs:
                 ws.setJavaScriptEnabled(true);
                 ws.setDomStorageEnabled(true);
                 ws.setAllowFileAccess(true);
+                
+                ws.setUseWideViewPort(true);
+                ws.setLoadWithOverviewMode(true);
+                ws.setSupportZoom(false);
+                ws.setBuiltInZoomControls(false);
+                ws.setDisplayZoomControls(false);
                 
                 ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
                 wv.clearCache(true);
@@ -342,7 +340,9 @@ jobs:
                             @Override
                             public void run() {
                                 if (url != null && !url.isEmpty()) {
-                                    playerContainer.setVisibility(View.VISIBLE);
+                                    if (playerContainer != null) {
+                                        playerContainer.setVisibility(View.VISIBLE);
+                                    }
                                     playerView.setVisibility(View.VISIBLE);
                                     if (loadingSpinner != null) {
                                         loadingSpinner.setVisibility(View.VISIBLE);
@@ -455,7 +455,6 @@ jobs:
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     wv.setVisibility(View.GONE);
                     
-                    // 🟢 لاندسکێپا نەیف د لایەرێ دەرەکی یێ LinearLayout دا د شاشێ دا
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
@@ -466,7 +465,6 @@ jobs:
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     wv.setVisibility(View.VISIBLE);
 
-                    // 🟢 ڤەگەڕاندنا فەرمی یا لایەرێ دەرەکی یێ LinearLayout
                     int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
