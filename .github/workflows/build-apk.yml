@@ -30,6 +30,32 @@ jobs:
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/drawable
         
+        # 🟢 دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما داخستنێ یا پاك
+        cat << 'EOF' > app/src/main/res/drawable/ic_close.xml
+        <vector xmlns:android="http://schemas.android.com/apk/res/android"
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12z"/>
+        </vector>
+        EOF
+
+        # 🟢 دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما تەمام شاشەکردنێ (Fullscreen Arrows)
+        cat << 'EOF' > app/src/main/res/drawable/ic_fullscreen.xml
+        <vector xmlns:android="http://schemas.android.com/apk/res/android"
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M7,14H5v5h5v-2H7V14z M5,10h2V7h3V5H5V10z M17,17h-3v2h5v-5h-2V17z M14,5v2h3v3h2V5H14z"/>
+        </vector>
+        EOF
+        
         # دانانا فایلێ ناوخۆیی وەک پاشکەوت
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
@@ -45,7 +71,7 @@ jobs:
             echo "Custom logo.webp successfully set as App Icon!"
         else
             curl -L -o app/src/main/res/drawable/ic_launcher.png "https://upload.wikimedia.org/wikipedia/commons/c/cf/ExoPlayer_logo.png"
-            echo "No custom logo found in root, using default fallback icon."
+            echo "No custom logo found in root, using standard ExoPlayer PNG fallback icon."
         fi
         
         # ڕێکخستنا سەرەکی یا ئەندرۆیدێ
@@ -59,6 +85,30 @@ jobs:
             dependencies { classpath 'com.android.tools.build:gradle:8.2.2' }
         }
         allprojects { repositories { google(); mavenCentral() } }
+        EOF
+        
+        cat << 'EOF' > app/build.gradle
+        plugins { id 'com.android.application' }
+        android {
+            namespace 'com.kurdtv.vip'
+            compileSdk 34
+            defaultConfig {
+                applicationId "com.kurdtv.vip"
+                minSdk 21
+                targetSdk 34
+                versionCode 1
+                versionName "1.0.0"
+            }
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
+            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
+        }
         EOF
         
         # دیزاینێ نوو: ExoPlayer ل سەرێ شاشێ و WebView ل بنی
@@ -108,7 +158,7 @@ jobs:
         </LinearLayout>
         EOF
 
-        # دروستکردنا کۆنتڕۆلێن نەیف یێن پاقژ ب بێ دوکما Play/Pause یا تێکدەر ل سەر شاشێ
+        # 🟢 دروستکردنا کۆنتڕۆلێن نەیف یێن پاقژ ب وێنەیێن ڤێکتۆر یێن نوو یێن ic_close و ic_fullscreen
         cat << 'EOF' > app/src/main/res/layout/custom_exo_controls.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -116,7 +166,7 @@ jobs:
             android:layout_height="match_parent"
             android:background="#30000000">
 
-            <!-- دوکما سۆر یا داخستنێ (Power Icon) ل سەرێ ڕاستێ -->
+            <!-- دوکما سۆر یا داخستنێ (Power Icon) ل سەرێ ڕاستێ دگەڵ وێنەیێ ic_close -->
             <ImageButton
                 android:id="@+id/custom_close_btn"
                 android:layout_width="45dp"
@@ -126,11 +176,11 @@ jobs:
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="12dp"
                 android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:src="@drawable/ic_close"
                 android:tint="#EF4444"
                 android:contentDescription="Close" />
 
-            <!-- دوکما لەندسکێپێ ل خوارێ سمتێ چەپێ دگەڵ ڕاستکردن ب + -->
+            <!-- دوکما لەندسکێپێ ل خوارێ سمتێ چەپێ دگەڵ وێنەیێ ic_fullscreen -->
             <ImageButton
                 android:id="@+id/exo_fullscreen"
                 android:layout_width="45dp"
@@ -140,7 +190,7 @@ jobs:
                 android:layout_marginStart="12dp"
                 android:layout_marginBottom="12dp"
                 android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_zoom"
+                android:src="@drawable/ic_fullscreen"
                 android:tint="#FFFFFF"
                 android:contentDescription="Fullscreen" />
 
@@ -205,8 +255,8 @@ jobs:
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.webkit.WebResourceRequest;
-        import android.widget.FrameLayout;
-        import android.widget.LinearLayout;
+        import android.widget.FrameLayout; 
+        import android.widget.LinearLayout; 
         import android.widget.ProgressBar;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
@@ -214,10 +264,7 @@ jobs:
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
         import com.google.android.exoplayer2.Player;
-        import com.google.android.exoplayer2.PlaybackException;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
-        import com.google.android.exoplayer2.upstream.DefaultHttpDataSource; // 🟢 مەکینەیا ناساندنا لێنکێن گرافیکی
-        import com.google.android.exoplayer2.source.DefaultMediaSourceFactory; // 🟢 مەکینەیا بژاردەیا بەخشێ داینامیکی
 
         public class MainActivity extends AppCompatActivity {
             private WebView wv;
@@ -246,26 +293,12 @@ jobs:
 
                 playerContainer.setVisibility(View.GONE);
 
-                // 🟢 تەکنیكا ئێکجار پێشکەفتی یا بەفرینێ (LOAD CONTROL FOR LOW-LATENCY)
+                // مەکینەیا لۆدکرنا خێرا
                 DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-                        .setBufferDurationsMs(
-                            25000, // minBufferMs (کاشکرنا پێشوەخت د زامنی ٢٥ چرکەدا بۆ نەپچڕانێ)
-                            50000, // maxBufferMs
-                            1500,  // bufferForPlaybackMs (لۆدکرن دەستبەجێ د ١.٥ چرکەدا)
-                            2000   // bufferForPlaybackAfterRebufferMs
-                        )
-                        .setPrioritizeTimeOverSizeThresholds(true)
+                        .setBufferDurationsMs(1000, 4000, 800, 1000)
                         .build();
 
-                // 🟢 دروستکردنا سورسێ گواستنا ترافیکێ ب بێ بەستن ل سەر سێرڤەری (Throttling Bypass Factory)
-                DefaultHttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory()
-                        .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36") // لۆدکرنا ب شێوازی کڕۆمێ
-                        .setConnectTimeoutMs(8000)
-                        .setReadTimeoutMs(8000)
-                        .setAllowCrossProtocolRedirects(true);
-
                 player = new ExoPlayer.Builder(this)
-                        .setMediaSourceFactory(new DefaultMediaSourceFactory(this, httpDataSourceFactory)) // چالاککرنا گواستنا فەرمی یا بێ ڕێگر
                         .setLoadControl(loadControl)
                         .build();
                 playerView.setPlayer(player);
@@ -309,7 +342,7 @@ jobs:
                     }
 
                     @Override
-                    public void onPlayerError(PlaybackException error) {
+                    public void onPlayerError(com.google.android.exoplayer2.PlaybackException error) {
                         if (loadingSpinner != null) {
                             loadingSpinner.setVisibility(View.GONE);
                         }
