@@ -191,12 +191,12 @@
             opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
         }
 
-        /* 🟢 WEB PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین ل سەر شاشێ) */
+        /* 🟢 WEB PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین) */
         #streamPage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: transparent !important; z-index: 9999; display: none; }
         #streamPage.active { display: block; }
         .video-container { width: 100%; height: 100%; background: transparent !important; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         
-        /* 🟢 زڤڕاندنا مەکینەیا فەرمی یا ڤیدیۆیێ د ناڤ لایەرێ HTML دا بۆ لادانا خەلەتیێن کاتی */
+        /* مەکینەیا لۆدکرنا ڤیدیۆیا ئۆنلاین */
         .video-container video { width: 100%; height: 100%; object-fit: contain; display: block !important; } 
         
         .premium-loader { width: 50px; height: 50px; border: 4px solid rgba(77, 166, 255, 0.15); border-top-color: var(--blue-text); border-radius: 50%; animation: premiumSpin 0.7s linear infinite; position: absolute; z-index: 20; display: none; }
@@ -225,7 +225,7 @@
         .stream-icon.active { border-color: var(--yellow); }
         .stream-icon img { width: 80%; height: 80%; object-fit: contain; }
 
-        /* TV MODE FULLSCREEN PAGE */
+        /* TV MODE FULLSCREEN PAGE (لایەرێ نوی یێ فەرمی یێ تەلەفزیۆنێ) */
         .tv-chip {
             background: #1a1a1a; color: #aaa; padding: 6px 14px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; outline: none; transition: 0.2s; border: 1px solid transparent;
         }
@@ -480,6 +480,8 @@
             { name: "Aso sport", type: "sports", logo: "https://i.ibb.co/8nhqhyDf/images-39.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/402159.m3u8" },
             { name: "Kurdistan sport", type: "sports", logo: "https://i.ibb.co/1GCD6c8G/images-40.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/402162.m3u8" },
             { name: "Stv sport 1", type: "sports", logo: "https://i.ibb.co/HDKMgLFM/images-35.jpg", stream: "https://live20.bozztv.com/giatv/giatv-stv/stvsport/playlist.m3u8" },
+            { name: "Shna Sport", type: "sports", logo: "https://i.ibb.co/gMbvS833/images-36.jpg", stream: "https://cdn.karwan.tv/shna-tv-3/index.m3u8" },
+            { name: "Zaytoun Sport", type: "sports", logo: "https://i.ibb.co/jP3DSZJ3/2221-removebg-preview.png", stream: "https://barham.short.gy/zvgsport.m3u8" },
 
             // فیلم (Movies)
             { name: "Avar TV", type: "movies", logo: "https://i.ibb.co/b51Lmw7Q/images-17.jpg", stream: "https://avr.host247.net/live/AvarTv/playlist.m3u8" },
@@ -503,9 +505,10 @@
             { name: "Derin TV", type: "movies", logo: "https://i.ibb.co/M5y1qkqn/Screenshot-20260610-133919.jpg", stream: "http://baskhd.ddns.net:40/live/Derin/index.m3u8?checkedby:Halabja88" },
             { name: "Jamawar TV", type: "movies", logo: "https://i.ibb.co/nNFkYRgZ/images-31.jpg", stream: "https://avr.host247.net/JamawarTv/JamawarTv/playlist.m3u8" },
             { name: "Niroj Hd", type: "movies", logo: "https://i.ibb.co/qYD0Hf8F/Screenshot-20260610-235452.jpg", stream: "https://live20.bozztv.com/giatv/giatv-Shawkat/Niroj_HD/playlist.m3u8" },
-            { name: "Newline 1", type: "movies", logo: "https://i.ibb.co/8gqyD7wx/images-41.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119549.m3u8" },
-            { name: "Newline 2", type: "movies", logo: "https://i.ibb.co/Zz9Zt4k7/images-42.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119550.m3u8" },
-            { name: "Zed tv", type: "movies", logo: "https://i.ibb.co/MTpXm70/images-43.jpg", stream: "http://109.71.252.138/Zedtv/tracks-v1a1/mono.m3u8?token=yusfstore3434fyusfstore3434yusfstore3434yusfstore3434yusfstore3434fwestrqwerwefwefrwefwefwes&type=live" },
+            { name: "shna tv", type: "music", logo: "https://i.ibb.co/nMhqxL38/Screenshot-20260612-021526.jpg", stream: "http://shnatv.ddns.net:1935/live/shnatv/playlist.m3u8" },
+            { name: "Newline 1", type: "movies", logo: "https://i.ibb.co/8gqyD7wx/images-41.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119549.m3u8" }, // 🟢 Added
+            { name: "Newline 2", type: "movies", logo: "https://i.ibb.co/Zz9Zt4k7/images-42.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119550.m3u8" }, // 🟢 Added
+            { name: "Zed tv", type: "movies", logo: "https://i.ibb.co/MTpXm70/images-43.jpg", stream: "http://109.71.252.138/Zedtv/tracks-v1a1/mono.m3u8?token=yusfstore3434fyusfstore3434yusfstore3434yusfstore3434yusfstore3434fwestrqwerwefwefrwefwefwes&type=live" }, // 🟢 Added
             
             // مۆسیقا و قورئان (Music & Quran)
             { name: "Mix Kurdish", type: "music", logo: "https://i.ibb.co/mr9SgBKJ/images-8.jpg", stream: "http://avrstream.com:1935/live/Mix-kurdy/playlist.m3u8" },
@@ -656,17 +659,4 @@
 
             currentPlayingUrl = streamUrl;
             const loader = document.getElementById('loadingSpinner');
-            loader.style.display = 'block';
-
-            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-            video.pause(); video.removeAttribute('src'); video.load();
-
-            if (Hls.isSupported()) {
-                hlsInstance = new Hls({
-                    maxMaxBufferLength: 20, 
-                    maxBufferLength: 8, 
-                    enableWorker: true,
-                    lowLatencyMode: true, 
-                    startFragPrefetch: true
-                });
-                hlsInstance.l
+            loader.sty
