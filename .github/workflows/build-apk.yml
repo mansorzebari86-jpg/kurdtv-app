@@ -408,7 +408,7 @@ jobs:
                                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                                     wv.setVisibility(View.VISIBLE);
-                                    stopAndHidePlayer(); // 🟢 پاقژکرنا ڤیدیۆیێ دەمێ ژ تیڤی مۆد دەر دکەڤیت
+                                    stopAndHidePlayer(); 
                                 }
                             }
                         });
@@ -446,16 +446,6 @@ jobs:
                             @Override
                             public void run() {
                                 stopAndHidePlayer();
-                            }
-                        });
-                    }
-
-                    @JavascriptInterface
-                    public void toggleLandscape(final boolean landscape) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                toggleFullscreen(landscape);
                             }
                         });
                     }
@@ -560,7 +550,6 @@ jobs:
                     toggleFullscreen(false);
                 } else if (playerView.getVisibility() == View.VISIBLE) {
                     stopAndHidePlayer();
-                    wv.evaluateJavascript("document.getElementById('streamPage').classList.remove('active');", null);
                 } else if (wv.canGoBack()) {
                     wv.goBack();
                 } else {
