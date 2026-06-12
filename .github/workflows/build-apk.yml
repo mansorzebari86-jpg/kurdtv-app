@@ -30,7 +30,7 @@ jobs:
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/drawable
         
-        # دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما داخستنێ یا پاك
+        # 🟢 دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما داخستنێ
         cat << 'EOF' > app/src/main/res/drawable/ic_close.xml
         <vector xmlns:android="http://schemas.android.com/apk/res/android"
             android:width="24dp"
@@ -43,7 +43,7 @@ jobs:
         </vector>
         EOF
 
-        # دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما تەمام شاشەکردنێ
+        # 🟢 دروستکردنا کۆدێ وێنەیێ ڤێکتۆر یێ دوکما تەمام شاشەکردنێ
         cat << 'EOF' > app/src/main/res/drawable/ic_fullscreen.xml
         <vector xmlns:android="http://schemas.android.com/apk/res/android"
             android:width="24dp"
@@ -56,10 +56,8 @@ jobs:
         </vector>
         EOF
         
-        # دانانا فایلێ ناوخۆیی وەک پاشکەوت
         cp index.html app/src/main/assets/index.html || echo "<html><body><h1>Kurd TV VIP</h1></body></html>" > app/src/main/assets/index.html
         
-        # کۆنتڕۆلکرنا لۆگۆیێ فەرمی یێ بەرنامەی
         if [ -f "logo.png" ]; then
             cp logo.png app/src/main/res/drawable/ic_launcher.png
         elif [ -f "logo.jpg" ]; then
@@ -232,7 +230,7 @@ jobs:
         import android.graphics.Color;
         import android.net.Uri;
         import android.os.Bundle;
-        import android.os.Handler;
+        import android.os.Handler; 
         import android.view.View;
         import android.view.ViewGroup;
         import android.view.WindowManager;
@@ -385,7 +383,6 @@ jobs:
                 
                 wv.addJavascriptInterface(new Object() {
                     
-                    // 🟢 فەرمانا ئۆنکرن و ئۆفکرنا مۆدێ تیڤی (پاقژکری ژ هەمی خەلەتییان)
                     @JavascriptInterface
                     public void toggleTvMode(final boolean isTvMode) {
                         runOnUiThread(new Runnable() {
@@ -394,22 +391,24 @@ jobs:
                                 if (isTvMode) {
                                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
                                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                                    wv.setVisibility(View.VISIBLE);
+                                    
+                                    int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                                    int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                                    int landscapeWidth = Math.max(screenWidth, screenHeight);
+                                    int rightMargin = (int) (landscapeWidth * 0.30); 
                                     
                                     FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                                             ViewGroup.LayoutParams.MATCH_PARENT,
                                             ViewGroup.LayoutParams.MATCH_PARENT
                                     );
+                                    params.rightMargin = rightMargin; 
                                     playerContainer.setLayoutParams(params);
                                 } else {
                                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                                    
-                                    int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
-                                    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                                            ViewGroup.LayoutParams.MATCH_PARENT,
-                                            heightPx
-                                    );
-                                    playerContainer.setLayoutParams(params);
+                                    wv.setVisibility(View.VISIBLE);
+                                    stopAndHidePlayer(); // 🟢 پاقژکرنا ڤیدیۆیێ دەمێ ژ تیڤی مۆد دەر دکەڤیت
                                 }
                             }
                         });
@@ -447,6 +446,16 @@ jobs:
                             @Override
                             public void run() {
                                 stopAndHidePlayer();
+                            }
+                        });
+                    }
+
+                    @JavascriptInterface
+                    public void toggleLandscape(final boolean landscape) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                toggleFullscreen(landscape);
                             }
                         });
                     }
@@ -524,6 +533,7 @@ jobs:
                 if (fullscreen) {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    wv.setVisibility(View.GONE);
                     
                     FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -533,6 +543,7 @@ jobs:
                 } else {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    wv.setVisibility(View.VISIBLE);
 
                     int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
                     FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
@@ -549,6 +560,7 @@ jobs:
                     toggleFullscreen(false);
                 } else if (playerView.getVisibility() == View.VISIBLE) {
                     stopAndHidePlayer();
+                    wv.evaluateJavascript("document.getElementById('streamPage').classList.remove('active');", null);
                 } else if (wv.canGoBack()) {
                     wv.goBack();
                 } else {
