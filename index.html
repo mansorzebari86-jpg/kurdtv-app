@@ -191,7 +191,7 @@
             opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
         }
 
-        /* 🟢 WEB PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین) */
+        /* WEB PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین) */
         #streamPage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: transparent !important; z-index: 9999; display: none; }
         #streamPage.active { display: block; }
         .video-container { width: 100%; height: 100%; background: transparent !important; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -222,6 +222,24 @@
         .stream-icon:focus { transform: scale(1.15); border-color: var(--yellow) !important; box-shadow: 0 0 15px var(--yellow); }
         .stream-icon.active { border-color: var(--yellow); }
         .stream-icon img { width: 80%; height: 80%; object-fit: contain; }
+
+        /* 🟢 TV MODE FULLSCREEN PAGE (لایەرێ نوی یێ فەرمی یێ تەلەفزیۆنێ) */
+        .tv-chip {
+            background: #1a1a1a; color: #aaa; padding: 6px 14px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; outline: none; transition: 0.2s; border: 1px solid transparent;
+        }
+        .tv-chip.active, .tv-chip:focus {
+            background: #1c2b3a; color: var(--blue-text); border-color: var(--blue-text);
+        }
+        .tv-channel-item {
+            display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; outline: none; transition: 0.2s;
+        }
+        .tv-channel-item:focus, .tv-channel-item.active {
+            background: rgba(77, 166, 255, 0.1); border-color: var(--blue-text); transform: scale(1.03);
+        }
+        .tv-channel-item img {
+            width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #000; padding: 3px;
+        }
+        .tv-channel-name { font-size: 13px; font-weight: bold; color: #eee; }
     </style>
 </head>
 <body>
@@ -361,11 +379,42 @@
         </div>
     </div>
 
+    <!-- 🟢 TV MODE FULLSCREEN PAGE (تەمام شاشە دگەڵ لیستا لایێ ڕاستێ) -->
+    <div id="tvModePage" class="page">
+        <div class="flex h-screen w-screen overflow-hidden">
+            <!-- لایێ چەپێ: شەفاف بۆ نیشاندانی ExoPlayer -->
+            <div class="w-[70%] h-full relative" onclick="toggleTvSidebar()">
+                <div id="tvLoadingSpinner" class="premium-loader"></div>
+            </div>
+
+            <!-- لایێ ڕاستێ: لیستا کەنالان و کاتیگۆرییان ب شەفافیەت -->
+            <div id="tvSidebar" class="w-[30%] h-full bg-[#111115]/95 border-r border-white/5 flex flex-col transition-all duration-300 shadow-2xl z-50">
+                <div class="p-4 flex items-center justify-between border-b border-white/5">
+                    <span class="text-sm font-bold text-gray-400">TV MODE</span>
+                    <button class="w-10 h-10 rounded-full bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all outline-none focus:ring-2 focus:ring-red-500" tabindex="0" onclick="exitTvMode()">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+
+                <!-- کاتیگۆرییێن تیڤی مۆد -->
+                <div class="flex gap-2 p-3 overflow-x-auto scrollbar-none border-b border-white/5">
+                    <div class="tv-chip active" tabindex="0" onclick="filterTvCategory('news', this)">هەواڵ</div>
+                    <div class="tv-chip" tabindex="0" onclick="filterTvCategory('sports', this)">وەرزش</div>
+                    <div class="tv-chip" tabindex="0" onclick="filterTvCategory('movies', this)">فیلم</div>
+                    <div class="tv-chip" tabindex="0" onclick="filterTvCategory('music', this)">مۆسیقا</div>
+                </div>
+
+                <!-- کەنالێن تیڤی مۆد -->
+                <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-2 scrollbar-none" id="tvChannelList"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- BOTTOM TAB NAVIGATION -->
     <div class="bottom-nav">
         <div id="nav-home" class="nav-item active" tabindex="0" onclick="switchMainTab('homePage', this)"><i class="fa-solid fa-house"></i><span>Serekî</span></div>
         <div id="nav-channels" class="nav-item" tabindex="0" onclick="switchMainTab('channelsPage', this)"><i class="fa-solid fa-tv"></i><span>Kanalan</span></div>
-        <div class="nav-item" tabindex="0" onclick="triggerNotification('TV Mode dê زوو هێتە چاککرن')"><i class="fa-solid fa-desktop"></i><span>TV Mode</span></div>
+        <div class="nav-item" tabindex="0" onclick="enterTvMode()"><i class="fa-solid fa-desktop"></i><span>TV Mode</span></div>
         <div class="nav-item" tabindex="0" onclick="switchMainTab('settingsPage', this)"><i class="fa-solid fa-gear"></i><span>Settings</span></div>
     </div>
 
@@ -425,6 +474,7 @@
             { name: "Id sport", type: "sports", logo: "https://i.ibb.co/QFyYfRwG/images-38.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/518112.m3u8" },
             { name: "Aso sport", type: "sports", logo: "https://i.ibb.co/8nhqhyDf/images-39.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/402159.m3u8" },
             { name: "Kurdistan sport", type: "sports", logo: "https://i.ibb.co/1GCD6c8G/images-40.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/402162.m3u8" },
+            { name: "Stv sport 1", type: "sports", logo: "https://i.ibb.co/HDKMgLFM/images-35.jpg", stream: "https://live20.bozztv.com/giatv/giatv-stv/stvsport/playlist.m3u8" },
 
             // فیلم (Movies)
             { name: "Avar TV", type: "movies", logo: "https://i.ibb.co/b51Lmw7Q/images-17.jpg", stream: "https://avr.host247.net/live/AvarTv/playlist.m3u8" },
@@ -448,9 +498,9 @@
             { name: "Derin TV", type: "movies", logo: "https://i.ibb.co/M5y1qkqn/Screenshot-20260610-133919.jpg", stream: "http://baskhd.ddns.net:40/live/Derin/index.m3u8?checkedby:Halabja88" },
             { name: "Jamawar TV", type: "movies", logo: "https://i.ibb.co/nNFkYRgZ/images-31.jpg", stream: "https://avr.host247.net/JamawarTv/JamawarTv/playlist.m3u8" },
             { name: "Niroj Hd", type: "movies", logo: "https://i.ibb.co/qYD0Hf8F/Screenshot-20260610-235452.jpg", stream: "https://live20.bozztv.com/giatv/giatv-Shawkat/Niroj_HD/playlist.m3u8" },
-            { name: "Newline 1", type: "movies", logo: "https://i.ibb.co/8gqyD7wx/images-41.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119549.m3u8" }, // 🟢 Added
-            { name: "Newline 2", type: "movies", logo: "https://i.ibb.co/Zz9Zt4k7/images-42.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119550.m3u8" }, // 🟢 Added
-            { name: "Zed tv", type: "movies", logo: "https://i.ibb.co/MTpXm70/images-43.jpg", stream: "http://109.71.252.138/Zedtv/tracks-v1a1/mono.m3u8?token=yusfstore3434fyusfstore3434yusfstore3434yusfstore3434yusfstore3434fwestrqwerwefwefrwefwefwes&type=live" }, // 🟢 Added
+            { name: "Newline 1", type: "movies", logo: "https://i.ibb.co/8gqyD7wx/images-41.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119549.m3u8" },
+            { name: "Newline 2", type: "movies", logo: "https://i.ibb.co/Zz9Zt4k7/images-42.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119550.m3u8" },
+            { name: "Zed tv", type: "movies", logo: "https://i.ibb.co/MTpXm70/images-43.jpg", stream: "http://109.71.252.138/Zedtv/tracks-v1a1/mono.m3u8?token=yusfstore3434fyusfstore3434yusfstore3434yusfstore3434yusfstore3434fwestrqwerwefwefrwefwefwes&type=live" },
             
             // مۆسیقا و قورئان (Music & Quran)
             { name: "Mix Kurdish", type: "music", logo: "https://i.ibb.co/mr9SgBKJ/images-8.jpg", stream: "http://avrstream.com:1935/live/Mix-kurdy/playlist.m3u8" },
@@ -619,46 +669,4 @@
                 hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
                     video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
                 });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = streamUrl;
-                video.addEventListener('loadedmetadata', () => {
-                    video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
-                });
-            } else {
-                loader.style.display = 'none';
-                triggerNotification("ئەڤ لێگەڕۆکە پشتگیرییا پەخشی ناکەت.");
-            }
-
-            video.onplaying = () => { loader.style.display = 'none'; };
-            video.onwaiting = () => { loader.style.display = 'block'; };
-        }
-
-        function exitStreamOverlay(event) {
-            if (event) event.stopPropagation();
-            document.getElementById('streamPage').classList.remove('active');
-            
-            if (window.AndroidBridge) {
-                window.AndroidBridge.stopExo();
-            } else {
-                if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-                video.pause(); video.removeAttribute('src'); video.load();
-            }
-        }
-
-        function toggleScreenOrientation(event) {
-            if (event) event.stopPropagation();
-            if (window.AndroidBridge) {
-                const isLandscape = window.innerHeight < window.innerWidth;
-                window.AndroidBridge.toggleLandscape(!isLandscape);
-            } else {
-                const overlay = document.getElementById('streamPage');
-                if (!document.fullscreenElement) {
-                    if (overlay.requestFullscreen) overlay.requestFullscreen();
-                } else {
-                    if (document.exitFullscreen) document.exitFullscreen();
-                }
-            }
-        }
-    </script>
-</body>
-                                                                                                 </html>
+            } else if (video.canPlayType('ap
