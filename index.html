@@ -10,74 +10,72 @@
     
     <style>
         :root { --bg-dark: #0a0a0a; --nav-bg: #111111; --blue-text: #4da6ff; --gray-text: #777777; --yellow: #ffd700; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: manipulation; }
         body { background-color: var(--bg-dark); color: #fff; padding-bottom: 85px; overflow-x: hidden; }
+        
         .page { display: none; }
         .page.active { display: block; animation: fadeInPage 0.2s ease-out; }
         @keyframes fadeInPage { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
+
         .header-container { padding: 15px; position: sticky; top: 0; background: rgba(10, 10, 10, 0.98); z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .search-box { background: #1a1a1a; border-radius: 25px; padding: 10px 20px; display: flex; align-items: center; border: 1px solid #333; transition: all 0.2s ease; }
-        .search-box:focus-within { border-color: var(--blue-text); background: #222; }
+        .search-box { background: #1a1a1a; border-radius: 25px; padding: 10px 20px; display: flex; align-items: center; border: 1px solid #333; }
         .search-box input { background: transparent; border: none; color: #fff; outline: none; width: 100%; text-align: right; font-size: 14px; }
         .search-box i { color: #888; margin-left: 10px; }
-        .search-box:focus-within i { color: var(--blue-text); }
         
         .banner-container { padding: 0 15px 15px; }
         .main-banner { background: linear-gradient(135deg, #162a33 0%, #0a0a0a 100%); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 20px; padding: 20px; text-align: center; position: relative; overflow: hidden; }
         .main-banner h2 { color: var(--yellow); font-size: 24px; margin-bottom: 5px; font-weight: bold; }
         .main-banner p { font-size: 13px; color: #ddd; font-weight: 500;}
-        
+
         .section-wrapper { padding: 10px 15px; margin-bottom: 5px; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .section-title { font-size: 17px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         .see-more { background: #1c2b3a; color: var(--blue-text); padding: 6px 16px; border-radius: 15px; font-size: 12px; display: flex; align-items: center; gap: 5px; cursor: pointer; border: none; font-weight: bold; }
-        
+
         .channel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .channel-card { text-align: center; text-decoration: none; cursor: pointer; border-radius: 18px; outline: none; transition: all 0.15s ease; }
         .channel-card:focus { transform: scale(1.1); box-shadow: 0 0 15px var(--yellow); }
         .channel-card:focus .logo-container { border-color: var(--yellow) !important; }
         .channel-card:active { transform: scale(0.95); }
-        
+
         .logo-container { background: linear-gradient(145deg, #1c1c1e, #0e0e11); border-radius: 18px; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; position: relative; padding: 8px; border: 1px solid rgba(255,255,255,0.08); }
         .logo-container img { width: 90%; height: 90%; object-fit: contain; }
         .channel-name { display: block; font-size: 11px; color: #ddd; margin-top: 8px; font-weight: bold; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
-        
+
         .badge { position: absolute; top: -6px; right: -6px; padding: 3px 6px; border-radius: 8px; font-size: 8px; font-weight: bold; color: #fff; text-transform: uppercase; z-index: 2; }
         .badge.news { background: linear-gradient(135deg, #0072ff, #00c6ff); }
         .badge.sports { background: linear-gradient(135deg, #f12711, #f5af19); }
         .badge.movies { background: linear-gradient(135deg, #8A2387, #E94057); }
         .badge.music { background: linear-gradient(135deg, #654ea3, #eaafc8); }
-        
+
         .category-scroll { display: flex; overflow-x: auto; padding: 10px 15px; gap: 10px; scrollbar-width: none; }
         .category-scroll::-webkit-scrollbar { display: none; }
         .chip { background: #1a1a1a; color: #fff; padding: 8px 18px; border-radius: 20px; white-space: nowrap; font-size: 14px; display: flex; align-items: center; gap: 8px; border: 1px solid #333; cursor: pointer; outline: none; }
         .chip:focus { border-color: var(--blue-text); box-shadow: 0 0 10px var(--blue-text); }
         .chip.active { background: #1c2b3a; color: var(--blue-text); border-color: var(--blue-text); font-weight: bold;}
-        
+
         .page-title { padding: 10px 15px; font-size: 20px; font-weight: bold; }
-        
+
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background-color: rgba(17, 17, 17, 0.99); display: flex; justify-content: space-around; padding: 12px 0 18px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 1000; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--gray-text); text-decoration: none; font-size: 11px; font-weight: bold; cursor: pointer; position: relative; outline: none; padding: 5px; border-radius: 10px; }
         .nav-item:focus { color: var(--blue-text); background: rgba(255,255,255,0.05); }
         .nav-item i { font-size: 22px; margin-bottom: 4px; }
         .nav-item.active { color: var(--blue-text); }
         .nav-item.active::before { content: ''; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 35px; height: 3px; background: var(--blue-text); border-radius: 0 0 5px 5px; }
-        
+
+        /* Settings Page */
         .settings-container { padding: 15px; }
         .settings-card { background: linear-gradient(145deg, #1a1a24, #0d0d12); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 25px 20px; text-align: center; margin-bottom: 15px; position: relative; overflow: hidden; }
         .settings-avatar { width: 80px; height: 80px; background: linear-gradient(45deg, var(--yellow), #ff9800); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; color: #111; margin: 0 auto 12px auto; border: 3px solid #222; }
         .ai-badge { position: absolute; top: 15px; right: 15px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        
+
         #customAlert { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #18181b; border: 1px solid #27272a; color: #fff; padding: 10px 18px; border-radius: 15px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 8px; z-index: 10005; box-shadow: 0 10px 25px rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
-        
-        /* 🟢 WEB PLAYER OVERLAY */
+
+        /* 🟢 WEB PLAYER OVERLAY (بۆ سەرێ شاشێ) */
         #streamPage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: transparent !important; z-index: 9999; display: none; }
         #streamPage.active { display: block; }
         .video-container { width: 100%; height: 100%; background: transparent !important; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .video-container video { display: none !important; }
-        .premium-loader { width: 50px; height: 50px; border: 4px solid rgba(77, 166, 255, 0.15); border-top-color: var(--blue-text); border-radius: 50%; animation: premiumSpin 0.7s linear infinite; position: absolute; z-index: 20; display: none; }
-        @keyframes premiumSpin { 100% { transform: rotate(360deg); } }
         .player-control { transition: opacity 0.4s ease; position: absolute; z-index: 10; width: 100%; left: 0; pointer-events: auto; }
         .stream-header { top: 0; padding: 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; justify-content: space-between; align-items: center; }
         .stream-header-right { display: flex; align-items: center; gap: 15px; }
@@ -95,13 +93,16 @@
         .stream-icon.active { border-color: var(--yellow); }
         .stream-icon img { width: 80%; height: 80%; object-fit: contain; }
 
-        /* 🟢 TV MODE FULLSCREEN PAGE */
-        .tv-chip { background: #1a1a1a; color: #aaa; padding: 6px 14px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; outline: none; transition: 0.2s; border: 1px solid transparent; }
-        .tv-chip.active, .tv-chip:focus { background: #1c2b3a; color: var(--blue-text); border-color: var(--blue-text); }
-        .tv-channel-item { display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; outline: none; transition: 0.2s; }
-        .tv-channel-item:focus, .tv-channel-item.active { background: rgba(77, 166, 255, 0.1); border-color: var(--blue-text); transform: scale(1.03); }
-        .tv-channel-item img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #000; padding: 3px; }
-        .tv-channel-name { font-size: 13px; font-weight: bold; color: #eee; }
+        /* 🟢 TV MODE FULLSCREEN PAGE (لایەرێ ڕاستەقینە یێ TV Mode) */
+        #tvModePage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: transparent !important; z-index: 9999; display: none; }
+        #tvModePage.active { display: block; }
+        .tv-chip { background: #1a1a1a; color: #aaa; padding: 8px 16px; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; outline: none; transition: 0.2s; border: 1px solid #333; }
+        .tv-chip.active, .tv-chip:focus { background: #1c2b3a; color: var(--yellow); border-color: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+        
+        .tv-channel-item { display: flex; align-items: center; gap: 15px; padding: 12px; background: rgba(20,20,25,0.9); border: 2px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; outline: none; transition: 0.2s; margin-bottom: 8px; }
+        .tv-channel-item:focus, .tv-channel-item.active { background: rgba(77, 166, 255, 0.15); border-color: var(--yellow); transform: scale(1.02); box-shadow: 0 0 12px rgba(255, 215, 0, 0.4); }
+        .tv-channel-item img { width: 45px; height: 45px; object-fit: contain; border-radius: 8px; background: #000; padding: 3px; }
+        .tv-channel-name { font-size: 14px; font-weight: bold; color: #eee; }
     </style>
 </head>
 <body>
@@ -112,16 +113,9 @@
     <div id="homePage" class="page active">
         <div class="header-container"><div class="search-box"><input type="text" id="homeSearch" oninput="appSearch(this.value)" placeholder="گەڕیان بۆ کەناڵ..."><i class="fa-solid fa-magnifying-glass"></i></div></div>
         <div class="banner-container"><div class="main-banner"><h2>KURD TV VIP</h2><p>باشترین بەرنامە بۆ پەخشی ڕاستەوخۆ</p></div></div>
-
         <div class="section-wrapper" id="home-news"><div class="section-header"><div class="section-title"><i class="fa-solid fa-newspaper text-blue-400"></i> هەواڵەکان</div><div class="see-more" onclick="goToCategory('news')">زیاتر ببینە <i class="fa-solid fa-chevron-left"></i></div></div><div class="channel-grid" id="grid-news"></div></div>
-        <div class="px-4 my-5"><a href="https://t.me/s/Kurdtvvip" class="w-full bg-[#111827] border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between shadow-[0_4px_15px_rgba(0,0,0,0.5)] active:scale-95 transition-all" style="text-decoration: none;"><span class="text-white font-bold text-sm tracking-wide">لە تێلیگرام ئادد بکەن</span><i class="fa-brands fa-telegram text-[#2AABEE] text-3xl"></i></a></div>
-        
         <div class="section-wrapper" id="home-sports"><div class="section-header"><div class="section-title"><i class="fa-solid fa-soccer-ball text-orange-400"></i> وەرزش</div><div class="see-more" onclick="goToCategory('sports')">زیاتر ببینە <i class="fa-solid fa-chevron-left"></i></div></div><div class="channel-grid" id="grid-sports"></div></div>
-        <div class="px-4 my-5"><a href="https://t.me/s/Kurdtvvip" class="w-full bg-[#111827] border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between shadow-[0_4px_15px_rgba(0,0,0,0.5)] active:scale-95 transition-all" style="text-decoration: none;"><span class="text-white font-bold text-sm tracking-wide">لە تێلیگرام ئادد بکەن</span><i class="fa-brands fa-telegram text-[#2AABEE] text-3xl"></i></a></div>
-        
         <div class="section-wrapper" id="home-movies"><div class="section-header"><div class="section-title"><i class="fa-solid fa-film" style="color: #e91e63;"></i> فیلم</div><div class="see-more" onclick="goToCategory('movies')">زیاتر ببینە <i class="fa-solid fa-chevron-left"></i></div></div><div class="channel-grid" id="grid-movies"></div></div>
-        <div class="px-4 my-5"><a href="https://t.me/s/Kurdtvvip" class="w-full bg-[#111827] border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between shadow-[0_4px_15px_rgba(0,0,0,0.5)] active:scale-95 transition-all" style="text-decoration: none;"><span class="text-white font-bold text-sm tracking-wide">لە تێلیگرام ئادد بکەن</span><i class="fa-brands fa-telegram text-[#2AABEE] text-3xl"></i></a></div>
-        
         <div class="section-wrapper" id="home-music"><div class="section-header"><div class="section-title"><i class="fa-solid fa-music" style="color: #9c27b0;"></i> مۆسیقا و قورئان</div><div class="see-more" onclick="goToCategory('music')">زیاتر ببینە <i class="fa-solid fa-chevron-left"></i></div></div><div class="channel-grid" id="grid-music"></div></div>
     </div>
 
@@ -146,44 +140,37 @@
             <div class="settings-card">
                 <div class="settings-avatar"><i class="fa-solid fa-crown text-yellow-400"></i></div>
                 <h3 class="settings-name">دەربارەی من</h3>
-                <p class="settings-bio">بەخێربێی بۆ باشترین بەرنامەی پەخشی ڕاستەوخۆ. بۆ ئاگاداربوون لە نوێترین زانیارییەکان و پەیوەندیکردن، سەردانی تیکتۆکەکەم بکە.</p>
-                <a href="https://www.tiktok.com/@kurdtv.vip" class="mt-2 mx-auto inline-flex items-center gap-2 bg-[#ff0050] text-white px-6 py-2.5 rounded-full font-bold shadow-[0_4px_15px_rgba(255,0,80,0.4)] active:scale-95 transition-transform" style="text-decoration: none;"><i class="fa-brands fa-tiktok text-lg"></i><span>kurdtv.vip</span></a>
+                <p class="settings-bio">بەخێربێی بۆ باشترین بەرنامەی پەخشی ڕاستەوخۆ.</p>
                 <div class="mt-5 inline-block bg-[#222] text-gray-400 text-xs font-bold px-4 py-1.5 rounded-full border border-gray-700">ڤێرژن: V 1.0.0 VIP</div>
-            </div>
-            <div class="settings-card" style="text-align: right; padding-top: 35px;">
-                <div class="ai-badge"><i class="fa-solid fa-microchip"></i> AI Powered</div>
-                <h3 class="text-white font-bold mb-3 flex items-center gap-2 text-lg"><i class="fa-brands fa-google text-blue-400 text-xl"></i> گەشەپێدان و تەکنەلۆژیا</h3>
-                <p class="text-sm text-gray-400 leading-relaxed font-medium">ئەڤ بەرنامەیە ب هێزا زیرەکییا دەستکرد (AI) و ب تایبەت مۆدێلا پێشکەفتی یا <strong class="text-blue-400">Google Gemini</strong> ب ڕێکا کۆمپیوتەری هاتییە دروستکرن و داڕشتن. مە باشترین کۆد و تەکنیک بکارئیناینە داکو ئەزموونەکا خێرا و بێ وەستیان پێشکەشی تە بکەین.</p>
             </div>
         </div>
     </div>
 
-    <!-- 🟢 TV MODE FULLSCREEN PAGE (تەمام شاشە دگەڵ لیستا لایێ ڕاستێ) -->
+    <!-- 🟢 TV MODE PAGE (مۆدێ تەلەفزیۆنێ یێ فەرمی) -->
     <div id="tvModePage" class="page">
         <div class="flex h-screen w-screen overflow-hidden">
-            <!-- لایێ چەپێ: شەفاف بۆ نیشاندانی ExoPlayer بێ وێ چەندێ کو دۆلاب ل سەر ڤیدیۆیێ بیت -->
-            <div class="w-[70%] h-full relative bg-transparent">
-                <div id="tvLoadingSpinner" class="premium-loader"></div>
-            </div>
+            <!-- لایێ چەپێ: شەفاف بۆ نیشاندانی ڤیدیۆیا ExoPlayer ل پشت -->
+            <div class="w-[70%] h-full relative bg-transparent"></div>
 
-            <!-- لایێ ڕاستێ: لیستا کەنالان -->
-            <div id="tvSidebar" class="w-[30%] h-full bg-[#111115]/95 border-r border-white/5 flex flex-col transition-all duration-300 shadow-2xl z-50">
-                <div class="p-4 flex items-center justify-between border-b border-white/5">
-                    <span class="text-sm font-bold text-gray-400">TV MODE</span>
-                    <button class="w-10 h-10 rounded-full bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all outline-none focus:ring-2 focus:ring-red-500" tabindex="0" onclick="exitTvMode()">
+            <!-- لایێ ڕاستێ: لیستا کەنالان و کاتیگۆرییان ب شەفافیەت و دیزاینێ Maten TV -->
+            <div id="tvSidebar" class="w-[30%] h-full bg-[#0a0a0c]/90 border-r border-white/10 flex flex-col shadow-2xl z-50">
+                <div class="p-4 flex items-center justify-between border-b border-white/10">
+                    <span class="text-md font-bold text-gray-200">TV MODE</span>
+                    <!-- دوکما سۆر یا داخستنێ د ناڤ مۆدێ تیڤی دا -->
+                    <button class="w-10 h-10 rounded-full bg-red-600/80 text-white hover:bg-red-500 flex items-center justify-center outline-none focus:ring-4 focus:ring-yellow-400 transition-all" tabindex="0" onclick="exitTvMode()">
                         <i class="fa-solid fa-power-off"></i>
                     </button>
                 </div>
 
-                <!-- کاتیگۆرییێن تیڤی مۆد -->
-                <div class="flex gap-2 p-3 overflow-x-auto scrollbar-none border-b border-white/5">
+                <!-- کاتیگۆرییێن تیڤی مۆد ب پشتگیرییا کۆنترۆلێ -->
+                <div class="flex gap-2 p-3 overflow-x-auto scrollbar-none border-b border-white/10">
                     <div class="tv-chip active" tabindex="0" onclick="filterTvCategory('news', this)">هەواڵ</div>
                     <div class="tv-chip" tabindex="0" onclick="filterTvCategory('sports', this)">وەرزش</div>
                     <div class="tv-chip" tabindex="0" onclick="filterTvCategory('movies', this)">فیلم</div>
                     <div class="tv-chip" tabindex="0" onclick="filterTvCategory('music', this)">مۆسیقا</div>
                 </div>
 
-                <!-- کەنالێن تیڤی مۆد -->
+                <!-- لیستا کەنالێن تیڤی مۆد -->
                 <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-2 scrollbar-none" id="tvChannelList"></div>
             </div>
         </div>
@@ -193,22 +180,20 @@
     <div class="bottom-nav">
         <div id="nav-home" class="nav-item active" tabindex="0" onclick="switchMainTab('homePage', this)"><i class="fa-solid fa-house"></i><span>Serekî</span></div>
         <div id="nav-channels" class="nav-item" tabindex="0" onclick="switchMainTab('channelsPage', this)"><i class="fa-solid fa-tv"></i><span>Kanalan</span></div>
-        <!-- 🟢 چالاککرنا کلیکێ ل سەر دوکما TV Mode -->
+        <!-- 🟢 کلیک ل سەر ڤێ دێ تە کەتە ناڤ TV Mode -->
         <div class="nav-item" tabindex="0" onclick="enterTvMode()"><i class="fa-solid fa-desktop"></i><span>TV Mode</span></div>
         <div class="nav-item" tabindex="0" onclick="switchMainTab('settingsPage', this)"><i class="fa-solid fa-gear"></i><span>Settings</span></div>
     </div>
 
-    <!-- STREAMING PLAYER OVERLAY (لایەرێ Maten TV ب تەمامی ئۆنلاین ل سەر شاشێ) -->
+    <!-- STREAMING PLAYER OVERLAY (لایەرێ ئاسایی بۆ مۆبایلێ) -->
     <div id="streamPage">
         <div class="video-container" id="videoWrapperBox">
-            <video id="hlsVideo" playsinline autoplay></video>
-            <div id="loadingSpinner" class="premium-loader"></div>
             <div class="stream-header player-control">
                 <div class="stream-header-right">
-                    <button class="btn-red-exit" onclick="exitStreamOverlay(event)"><i class="fa-solid fa-power-off"></i></button>
+                    <button class="btn-red-exit" tabindex="0" onclick="exitStreamOverlay(event)"><i class="fa-solid fa-power-off"></i></button>
                     <span style="font-size: 15px; font-weight: bold; display: flex; align-items: center; gap: 5px;">کەناڵێ ڕاستەوخۆ <span class="live-badge"><span class="live-dot"></span>LIVE</span></span>
                 </div>
-                <button class="btn-landscape-mode" onclick="toggleScreenOrientation(event)"><i class="fa-solid fa-expand"></i></button>
+                <button class="btn-landscape-mode" tabindex="0" onclick="toggleScreenOrientation(event)"><i class="fa-solid fa-expand"></i></button>
             </div>
             <div class="stream-bottom-channels player-control" id="bottomCarousel"></div>
         </div>
@@ -236,7 +221,7 @@
             { name: "Bein Sport 2", type: "sports", logo: "https://i.ibb.co/W4vyV9nY/images-28.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/318046.m3u8?token=SxRYWRUKFwgbVgYJVVFUWl4DBQQJWgZeUFMLAAICCQVTBwldXwNQVgAVGRsRFkcHWQtpD1xBDQsHCghVBBkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwNBAwIICl5AGRBcT0FcEAxUDmcCUxBRAFIaDFxNDV4ZGwxeaVRdCwNbVhsNFwlAThcLSxYUXFYWW1QaEFoIRkdYF1UUChpVUgEQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpUVwAFARVI" },
             { name: "Gawher Sport", type: "sports", logo: "https://i.ibb.co/h1VKz810/Screenshot-20260606-221959.jpg", stream: "https://cdn.karwan.tv/gewher-sport/tracks-v1a1/mono.m3u8" },
             { name: "Duhok Sport", type: "sports", logo: "https://i.ibb.co/ZRXgLbMf/duhok-tv-sport-528x297.jpg", stream: "http://krdtvappfree.ddns.net/Duhoksport/tracks-v1a1/mono.m3u8?token=yusfstore34" },
-            { name: "AVA Sport", type: "sports", logo: "https://i.ibb.co/35NfXDZk/download.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/300325.m3u8?token=SxRYWRUKFwgbAAMJAFQAVAEFUgVcBwQABAYJBwRQXwYBAQYLUwEDU10VGRsRFkcHWQtpD1xBDQsGAgtTBxkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwNBAQcCAFdAGRBcT0FcEAxUDmcCUxBRAFIaDFxNDV4ZGwxeaVRdCwNbVhsNFwhAThcLSxYUXFYWW1QaEFoIRkdYF1UUClYTDlkeG1RaTAwWRxsaXBQvaUEbGlNKTARcRlAMXhQKGgtRQAobGxdQET1HB0sSRANZDlJKFAgaURAZGw5RTm9bCQxbV1pDXFYMERdYGlcUShoOWFZfRlcTbUVQBxIMEglXUwAEG0o=" },
+            { name: "AVA Sport", type: "sports", logo: "https://i.ibb.co/35NfXDZk/download.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/402166.m3u8" },
             { name: "MMN Sport", type: "sports", logo: "https://i.ibb.co/bMTjRs77/mmn-tv-528x297.png", stream: "http://mmn.mypsx.net:1935/live/mmnhdsport/chunklist_w29500582.m3u8" },
             { name: "NRT Sport", type: "sports", logo: "https://i.ibb.co/k6BnVvYS/images-3.jpg", stream: "https://live20.bozztv.com/giatv/giatv-NRT-SPORT/NRT-SPORT/chunks.m3u8" },
             { name: "SPI Sport", type: "sports", logo: "https://i.ibb.co/dJj2wZR8/images-15.jpg", stream: "https://live20.bozztv.com/giatv/giatv-spi_sports_hd/spi_sports_hd/chunks.m3u8" },
@@ -246,7 +231,7 @@
             { name: "blue sport 1", type: "sports", logo: "https://i.ibb.co/Hv2Lm8F/Screenshot-20260612-011105.jpg", stream: "https://prod-fastly-eu-central-1.video.pscp.tv/Transcoding/v1/hls/adqwnKUWAbRb-KgQKN0S0hmoyzkFJOZE3flgiHgStB44ICsdEhpglGPQOrJ1oICHLRXjwAj_TJdFykOQvU574w/non_transcode/eu-central-1/periscope-replay-direct-prod-eu-central-1-public/master_dynamic_highlatency.m3u8?type=live" },
             { name: "blue sport 2", type: "sports", logo: "https://i.ibb.co/Hv2Lm8F/Screenshot-20260612-011105.jpg", stream: "https://prod-fastly-eu-central-1.video.pscp.tv/Transcoding/v1/hls/WsL3YYDwQfsnHhAAMVWpF1-vvrQhpPc2KnPxE5l6ajPGAIWhz4sfYgkPl6AFDJLeV2YGTS6q6I6ZvaH-5JOQ_Q/non_transcode/eu-central-1/periscope-replay-direct-prod-eu-central-1-public/master_dynamic_highlatency.m3u8?type=live" },
             { name: "blue sport 3", type: "sports", logo: "https://i.ibb.co/Hv2Lm8F/Screenshot-20260612-011105.jpg", stream: "https://prod-fastly-eu-central-1.video.pscp.tv/Transcoding/v1/hls/zfIdmopej5G4pVw28bDU0A27WYGAHBYR3LseP17-gOlvp_Xy5dyoa66CTRyFf_KrwHHCBptHlmbqtmFezyO3AQ/non_transcode/eu-central-1/periscope-replay-direct-prod-eu-central-1-public/master_dynamic_highlatency.m3u8?type=live" },
-            { name: "Shna Sport", type: "sports", logo: "https://i.i.bb.co/gMbvS833/images-36.jpg", stream: "https://cdn.karwan.tv/shna-tv-3/index.m3u8" },
+            { name: "Shna Sport", type: "sports", logo: "https://i.ibb.co/gMbvS833/images-36.jpg", stream: "https://cdn.karwan.tv/shna-tv-3/index.m3u8" },
             { name: "Id sport", type: "sports", logo: "https://i.ibb.co/QFyYfRwG/images-38.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/518112.m3u8" },
             { name: "Aso sport", type: "sports", logo: "https://i.ibb.co/8nhqhyDf/images-39.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/402159.m3u8" },
             { name: "Kurdistan sport", type: "sports", logo: "https://i.ibb.co/1GCD6c8G/images-40.jpg", stream: "http://darpro4k.com:8080/live/Paulus.somay/lxpuT0SOkd13GR/402162.m3u8" },
@@ -302,14 +287,9 @@
             { name: "Zaytoun Sport", type: "sports", logo: "https://i.ibb.co/jP3DSZJ3/2221-removebg-preview.png", stream: "https://barham.short.gy/zvgsport.m3u8" } 
         ];
 
-        const video = document.getElementById('hlsVideo');
-        let hlsInstance = null;
-        let currentPlayingUrl = "";
-
         document.addEventListener("DOMContentLoaded", () => {
             renderDashboard();
             renderAllChannelsPage();
-            renderVideoPlayerBottomCarousel();
         });
 
         function triggerNotification(msg) {
@@ -348,11 +328,10 @@
             const scroller = document.getElementById('bottomCarousel');
             let content = '';
             const filtered = database.filter(item => item.type === category);
-            
             filtered.forEach(item => {
                 const isActive = item.name === activeName ? 'active' : '';
                 content += `
-                    <div class="stream-icon carousel-target ${isActive}" tabindex="0" data-name="${item.name}" onclick="initiateFastPlayback('${item.stream}', '${item.name}', '${item.type}', event)">
+                    <div class="stream-icon carousel-target ${isActive}" tabindex="0" data-name="${item.name}" onclick="triggerStreamingOverlay('${item.stream}', '${item.name}', '${item.type}')">
                         <img src="${item.logo}" alt="${item.name}">
                     </div>`;
             });
@@ -363,22 +342,30 @@
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            navButton.classList.add('active');
+            if(navButton) navButton.classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function goToCategory(cat) {
-            switchMainTab('channelsPage', document.getElementById('nav-channels'));
+            switchMainTab('channelsPage', document.querySelectorAll('.nav-item')[1]);
             filterCategory(cat, document.getElementById('chip-' + cat));
         }
 
         function filterCategory(cat, element) {
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            element.classList.add('active');
+            if(element) element.classList.add('active');
             const allCards = document.querySelectorAll('#grid-all-page .channel-card');
             allCards.forEach(card => {
                 if(cat === 'all' || card.getAttribute('data-type') === cat) card.style.display = 'block';
                 else card.style.display = 'none';
+            });
+        }
+
+        function appSearch(val) {
+            const query = val.toLowerCase().trim();
+            document.querySelectorAll('.search-target').forEach(card => {
+                const name = card.getAttribute('data-name');
+                card.style.display = name.includes(query) ? 'block' : 'none';
             });
         }
 
@@ -398,13 +385,12 @@
             document.getElementById('tvModePage').classList.add('active');
             
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            document.querySelectorAll('.nav-item')[2].classList.add('active'); // دوکما تیڤی مۆد کارا دکەت
+            document.querySelectorAll('.nav-item')[2].classList.add('active'); 
 
             if (window.AndroidBridge) {
                 window.AndroidBridge.toggleTvMode(true);
             }
 
-            // لۆدکرنا کەنالێن 'هەواڵ' وەک دەستپێک
             filterTvCategory('news', document.querySelector('.tv-chip'));
         }
 
@@ -414,7 +400,7 @@
             document.getElementById('homePage').classList.add('active');
             
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            document.querySelectorAll('.nav-item')[0].classList.add('active'); // دوکما سەرەکی کارا دکەت
+            document.querySelectorAll('.nav-item')[0].classList.add('active');
             
             if (window.AndroidBridge) {
                 window.AndroidBridge.stopExo();
@@ -457,54 +443,8 @@
                 overlay.classList.add('active');
                 renderVideoPlayerBottomCarousel(category, channelName);
             } else {
-                const overlay = document.getElementById('streamPage');
-                overlay.classList.add('active');
-                renderVideoPlayerBottomCarousel(category, channelName);
-                initiateFastPlayback(streamUrl, channelName, category, null);
+                triggerNotification("ئەڤ کەنالە تەنێ د ئەپێ مۆبایلێ دا کار دکەت!");
             }
-        }
-
-        function initiateFastPlayback(streamUrl, channelName, category, event) {
-            if (event) event.stopPropagation();
-            setScrollerActiveHighlight(channelName);
-            
-            if (window.AndroidBridge) {
-                window.AndroidBridge.playInExo(streamUrl, channelName);
-                return;
-            }
-
-            currentPlayingUrl = streamUrl;
-            const loader = document.getElementById('loadingSpinner');
-            loader.style.display = 'block';
-
-            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-            video.pause(); video.removeAttribute('src'); video.load();
-
-            if (Hls.isSupported()) {
-                hlsInstance = new Hls({
-                    maxMaxBufferLength: 20, 
-                    maxBufferLength: 8, 
-                    enableWorker: true,
-                    lowLatencyMode: true, 
-                    startFragPrefetch: true
-                });
-                hlsInstance.loadSource(streamUrl);
-                hlsInstance.attachMedia(video);
-                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = streamUrl;
-                video.addEventListener('loadedmetadata', () => {
-                    video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
-                });
-            } else {
-                loader.style.display = 'none';
-                triggerNotification("ئەڤ لێگەڕۆکە پشتگیرییا پەخشی ناکەت.");
-            }
-
-            video.onplaying = () => { loader.style.display = 'none'; };
-            video.onwaiting = () => { loader.style.display = 'block'; };
         }
 
         function exitStreamOverlay(event) {
@@ -513,9 +453,6 @@
             
             if (window.AndroidBridge) {
                 window.AndroidBridge.stopExo();
-            } else {
-                if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-                video.pause(); video.removeAttribute('src'); video.load();
             }
         }
 
@@ -524,13 +461,6 @@
             if (window.AndroidBridge) {
                 const isLandscape = window.innerHeight < window.innerWidth;
                 window.AndroidBridge.toggleLandscape(!isLandscape);
-            } else {
-                const overlay = document.getElementById('streamPage');
-                if (!document.fullscreenElement) {
-                    if (overlay.requestFullscreen) overlay.requestFullscreen();
-                } else {
-                    if (document.exitFullscreen) document.exitFullscreen();
-                }
             }
         }
     </script>
