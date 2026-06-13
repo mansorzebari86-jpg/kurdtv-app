@@ -60,7 +60,7 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        # 🟢 App Build: گوهۆرینا بەردەستکرنا لایبرەریێ ژ ExoPlayer بۆ LibVLC یێ فەرمی یێ تەمام کەر
+        # 🟢 App Build: بکارئینانا ڤێرژنا فەرمی و پشتڕاستکری یا 3.6.5 یا VLC دگەل لایبرەریێن پشتەڤان
         cat << 'EOF' > app/build.gradle
         plugins { id 'com.android.application' }
         android {
@@ -81,7 +81,8 @@ jobs:
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
             implementation 'com.google.android.material:material:1.11.0'
-            implementation 'org.videolan.android:libvlc-all:3.5.4' // 👈 هێز و توانایا VLC ل ناڤ ئەپێ تە دا
+            implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+            implementation 'org.videolan.android:libvlc-all:3.6.5' // 👈 ڤێرژنا جێگیر و ب هێز یا VLC
         }
         EOF
         
