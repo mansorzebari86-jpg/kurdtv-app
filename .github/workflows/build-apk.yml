@@ -60,7 +60,7 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        # 🟢 App Build: بکارئینانا ڤێرژنا فەرمی و پشتڕاستکری یا 3.6.5 یا VLC دگەل لایبرەریێن پشتەڤان
+        # 🟢 App Build: گۆنجاندن دگەل بەربەستێن دۆپلیکەتان د ڕێکا packaging و jniLibs دا
         cat << 'EOF' > app/build.gradle
         plugins { id 'com.android.application' }
         android {
@@ -77,12 +77,17 @@ jobs:
                 sourceCompatibility JavaVersion.VERSION_17
                 targetCompatibility JavaVersion.VERSION_17
             }
+            packaging {
+                jniLibs {
+                    pickFirsts.add("**/libc++_shared.so") // 👈 چارەسەریا بنەڕەتی یا دۆپلیکەتێن VLC
+                }
+            }
         }
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
             implementation 'com.google.android.material:material:1.11.0'
             implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-            implementation 'org.videolan.android:libvlc-all:3.6.5' // 👈 ڤێرژنا جێگیر و ب هێز یا VLC
+            implementation 'org.videolan.android:libvlc-all:3.6.5'
         }
         EOF
         
@@ -277,9 +282,6 @@ jobs:
                 options.add("--file-caching=2000");
                 options.add("--network-caching=2000");
                 options.add("--live-caching=1000");
-                options.add("--clock-jitter=0");
-                options.add("--drop-late-frames");
-                options.add("--skip-frames");
                 
                 libVLC = new LibVLC(this, options);
                 mediaPlayer = new MediaPlayer(libVLC);
@@ -287,38 +289,6 @@ jobs:
 
                 closeBtn.setOnClickListener(v -> stopAndHidePlayer());
                 fullscreenBtn.setOnClickListener(v -> toggleFullscreen(!isFullscreen));
-
-                mediaPlayer.setEventListener(new MediaPlayer.EventListener() {
-                    @Override
-                    public void onEvent(MediaPlayer.Event event) {
-                        runOnUiThread(() -> {
-                            if (event.type == MediaPlayer.Event.Buffering) {
-                                float buffering = event.getBuffering();
-                                if (buffering < 100) {
-                                    if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
-                                } else {
-                                    if (loadingSpinner != null) loadingSpinner.setVisibility(View.GONE);
-                                    retryCount = 0;
-                                    retryHandler.removeCallbacks(retryRunnable);
-                                }
-                            } else if (event.type == MediaPlayer.Event.Playing) {
-                                if (loadingSpinner != null) loadingSpinner.setVisibility(View.GONE);
-                                retryCount = 0;
-                                retryHandler.removeCallbacks(retryRunnable);
-                            } else if (event.type == MediaPlayer.Event.EncounteredError) {
-                                if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
-                                if (retryCount < MAX_RETRIES) {
-                                    retryCount++;
-                                    retryHandler.removeCallbacks(retryRunnable);
-                                    retryHandler.postDelayed(retryRunnable, 3000);
-                                } else {
-                                    if (loadingSpinner != null) loadingSpinner.setVisibility(View.GONE);
-                                    Toast.makeText(MainActivity.this, "ئاریشە د پەخشی دا هەیە!", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
-                    }
-                });
 
                 WebSettings ws = wv.getSettings();
                 ws.setJavaScriptEnabled(true); ws.setDomStorageEnabled(true); ws.setAllowFileAccess(true);
@@ -348,7 +318,6 @@ jobs:
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
                                 if (playerContainer != null) playerContainer.setVisibility(View.VISIBLE);
                                 videoLayout.setVisibility(View.VISIBLE);
-                                if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
                                 
                                 playUrl(url);
                             }
@@ -378,7 +347,6 @@ jobs:
 
                             if (url != null && !url.isEmpty()) {
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
-                                if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
                                 playUrl(url);
                             }
                         });
