@@ -60,7 +60,6 @@ jobs:
         allprojects { repositories { google(); mavenCentral() } }
         EOF
         
-        # 🟢 App Build: گۆنجاندن دگەل بەربەستێن دۆپلیکەتان د ڕێکا packaging و jniLibs دا
         cat << 'EOF' > app/build.gradle
         plugins { id 'com.android.application' }
         android {
@@ -77,21 +76,15 @@ jobs:
                 sourceCompatibility JavaVersion.VERSION_17
                 targetCompatibility JavaVersion.VERSION_17
             }
-            packaging {
-                jniLibs {
-                    pickFirsts.add("**/libc++_shared.so") // 👈 چارەسەریا بنەڕەتی یا دۆپلیکەتێن VLC
-                }
-            }
         }
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
             implementation 'com.google.android.material:material:1.11.0'
-            implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-            implementation 'org.videolan.android:libvlc-all:3.6.5'
+            implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
         }
         EOF
         
-        # 🟢 Layout Update: بکارئینانا لایەرێ VLCVideoLayout بۆ پێکرنا هەمی کەنالێن بێ دەنگ ب دەنگەکێ دروست
+        # Layout یێ رێکخستی و ڕەسەن یێ ExoPlayer
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -107,14 +100,17 @@ jobs:
                 android:layout_alignParentTop="true"
                 android:visibility="gone">
 
-                <!-- 🟢 لایەرێ فەرمی یێ VLC -->
-                <org.videolan.libvlc.util.VLCVideoLayout
+                <com.google.android.exoplayer2.ui.StyledPlayerView
                     android:id="@+id/main_player_view"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#000000" />
+                    android:background="#000000"
+                    app:surface_type="texture_view"
+                    app:resize_mode="fit"
+                    app:use_controller="true"
+                    app:show_timeout="3000"
+                    app:controller_layout_id="@layout/custom_exo_controls"/>
 
-                <!-- چەرخا لۆدکرنێ -->
                 <ProgressBar
                     android:id="@+id/native_loading_spinner"
                     android:layout_width="55dp"
@@ -122,55 +118,6 @@ jobs:
                     android:layout_gravity="center"
                     android:indeterminateTint="#4da6ff"
                     android:visibility="gone" />
-
-                <!-- لایەرێ دوکما و کۆنتڕۆلێن زیرەک -->
-                <RelativeLayout
-                    android:id="@+id/custom_controls_overlay"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="#15000000">
-
-                    <!-- دوکما سۆر یا داخستنێ -->
-                    <ImageButton
-                        android:id="@+id/custom_close_btn"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginEnd="12dp"
-                        android:background="@android:color/transparent"
-                        android:src="@drawable/ic_close"
-                        android:tint="#EF4444"
-                        android:contentDescription="Close" />
-
-                    <!-- دوکما تەمام شاشەکرنێ -->
-                    <ImageButton
-                        android:id="@+id/vlc_fullscreen_btn"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginStart="12dp"
-                        android:layout_marginBottom="12dp"
-                        android:background="@android:color/transparent"
-                        android:src="@drawable/ic_fullscreen"
-                        android:tint="#FFFFFF"
-                        android:contentDescription="Fullscreen" />
-
-                    <!-- نیشاندەرا Live -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="12dp"
-                        android:layout_marginBottom="18dp"
-                        android:text="LIVE 🔴"
-                        android:textColor="#EF4444"
-                        android:textStyle="bold"
-                        android:textSize="11sp" />
-                </RelativeLayout>
             </FrameLayout>
 
             <WebView
@@ -179,6 +126,18 @@ jobs:
                 android:layout_height="match_parent"
                 android:layout_below="@id/player_container"
                 android:background="@android:color/transparent"/>
+        </RelativeLayout>
+        EOF
+
+        cat << 'EOF' > app/src/main/res/layout/custom_exo_controls.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#30000000">
+            <ImageButton android:id="@+id/custom_close_btn" android:layout_width="45dp" android:layout_height="45dp" android:layout_alignParentTop="true" android:layout_alignParentEnd="true" android:layout_marginTop="12dp" android:layout_marginEnd="12dp" android:background="@android:color/transparent" android:src="@drawable/ic_close" android:tint="#EF4444" android:contentDescription="Close" />
+            <ImageButton android:id="@+id/exo_fullscreen" android:layout_width="45dp" android:layout_height="45dp" android:layout_alignParentBottom="true" android:layout_alignParentStart="true" android:layout_marginStart="12dp" android:layout_marginBottom="12dp" android:background="@android:color/transparent" android:src="@drawable/ic_fullscreen" android:tint="#FFFFFF" android:contentDescription="Fullscreen" />
+            <TextView android:id="@+id/live_indicator_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:layout_alignParentEnd="true" android:layout_marginEnd="12dp" android:layout_marginBottom="18dp" android:text="LIVE 🔴" android:textColor="#EF4444" android:textStyle="bold" android:textSize="11sp" />
         </RelativeLayout>
         EOF
         
@@ -201,7 +160,7 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: داڕشتنا نوو ب بکارئینانا لایبرەرییا LibVLC داکو دەنگێ هەمی کەنالان دروست کار بکەت
+        # 🟢 MainActivity: زێدەکرنا ئەپشنێ FLAG_DETECT_ACCESS_UNITS د ناڤ لێدەرێ ExoPlayer دا بۆ لێدانا تەمام یا دەنگێ هەمی کەنالان
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -223,39 +182,37 @@ jobs:
         import android.widget.FrameLayout; 
         import android.widget.RelativeLayout; 
         import android.widget.ProgressBar;
-        import android.widget.ImageButton;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
 
-        import org.videolan.libvlc.LibVLC;
-        import org.videolan.libvlc.Media;
-        import org.videolan.libvlc.MediaPlayer;
-        import org.videolan.libvlc.util.VLCVideoLayout;
-
-        import java.util.ArrayList;
+        import com.google.android.exoplayer2.DefaultLoadControl;
+        import com.google.android.exoplayer2.ExoPlayer;
+        import com.google.android.exoplayer2.MediaItem;
+        import com.google.android.exoplayer2.Player;
+        import com.google.android.exoplayer2.PlaybackException;
+        import com.google.android.exoplayer2.ui.StyledPlayerView;
+        import com.google.android.exoplayer2.source.MediaSource;
+        import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+        import com.google.android.exoplayer2.source.hls.DefaultHlsExtractorFactory;
+        import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
+        import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+        import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+        import com.google.android.exoplayer2.upstream.DataSource;
 
         public class MainActivity extends AppCompatActivity {
             private WebView wv;
-            private LibVLC libVLC;
-            private MediaPlayer mediaPlayer;
-            private VLCVideoLayout videoLayout;
+            private ExoPlayer player;
+            private StyledPlayerView playerView;
             private FrameLayout playerContainer; 
             private ProgressBar loadingSpinner;
-            private ImageButton closeBtn, fullscreenBtn;
             private boolean isFullscreen = false;
             private boolean isTvMode = false;
 
             private int retryCount = 0;
             private final int MAX_RETRIES = 10;
             private final Handler retryHandler = new Handler();
-            private String lastPlayedUrl = "";
             private final Runnable retryRunnable = new Runnable() {
-                @Override 
-                public void run() { 
-                    if (mediaPlayer != null && lastPlayedUrl != null && !lastPlayedUrl.isEmpty()) { 
-                        playUrl(lastPlayedUrl);
-                    } 
-                }
+                @Override public void run() { if (player != null) { player.prepare(); player.play(); } }
             };
 
             @Override
@@ -263,12 +220,10 @@ jobs:
                 super.onCreate(savedInstanceState);
                 setContentView(R.layout.activity_main);
 
-                videoLayout = findViewById(R.id.main_player_view);
+                playerView = findViewById(R.id.main_player_view);
                 playerContainer = findViewById(R.id.player_container);
                 wv = findViewById(R.id.main_web_view);
                 loadingSpinner = findViewById(R.id.native_loading_spinner);
-                closeBtn = findViewById(R.id.custom_close_btn);
-                fullscreenBtn = findViewById(R.id.vlc_fullscreen_btn);
 
                 wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
                 wv.setBackgroundColor(Color.TRANSPARENT);
@@ -277,18 +232,27 @@ jobs:
                 wv.requestFocus();
                 playerContainer.setVisibility(View.GONE);
 
-                // دروستکرنا رێکخستنێن VLC
-                ArrayList<String> options = new ArrayList<>();
-                options.add("--file-caching=2000");
-                options.add("--network-caching=2000");
-                options.add("--live-caching=1000");
-                
-                libVLC = new LibVLC(this, options);
-                mediaPlayer = new MediaPlayer(libVLC);
-                mediaPlayer.attachViews(videoLayout, null, false, false);
+                DefaultLoadControl loadControl = new DefaultLoadControl.Builder().setBufferDurationsMs(1000, 4000, 800, 1000).build();
+                player = new ExoPlayer.Builder(this).setLoadControl(loadControl).build();
+                playerView.setPlayer(player);
+                player.setPlayWhenReady(true); 
 
-                closeBtn.setOnClickListener(v -> stopAndHidePlayer());
-                fullscreenBtn.setOnClickListener(v -> toggleFullscreen(!isFullscreen));
+                View closeBtn = playerView.findViewById(R.id.custom_close_btn);
+                if (closeBtn != null) closeBtn.setOnClickListener(v -> stopAndHidePlayer());
+                playerView.setFullscreenButtonClickListener(isFullScreen -> toggleFullscreen(isFullScreen));
+
+                player.addListener(new Player.Listener() {
+                    @Override public void onPlaybackStateChanged(int state) {
+                        if (state == Player.STATE_BUFFERING) { if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE); } 
+                        else if (state == Player.STATE_READY) { if (loadingSpinner != null) loadingSpinner.setVisibility(View.GONE); retryCount = 0; retryHandler.removeCallbacks(retryRunnable); } 
+                        else if (state == Player.STATE_ENDED) { if (loadingSpinner != null) loadingSpinner.setVisibility(View.GONE); }
+                    }
+                    @Override public void onPlayerError(PlaybackException error) {
+                        if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
+                        if (retryCount < MAX_RETRIES) { retryCount++; retryHandler.removeCallbacks(retryRunnable); retryHandler.postDelayed(retryRunnable, 3000); } 
+                        else { if (loadingSpinner != null) loadingSpinner.setVisibility(View.GONE); Toast.makeText(MainActivity.this, "ئاریشە د پەخشی دا هەیە!", Toast.LENGTH_SHORT).show(); }
+                    }
+                });
 
                 WebSettings ws = wv.getSettings();
                 ws.setJavaScriptEnabled(true); ws.setDomStorageEnabled(true); ws.setAllowFileAccess(true);
@@ -303,6 +267,7 @@ jobs:
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
                                 isTvMode = false;
+                                playerView.setUseController(true); 
                                 
                                 if (!isFullscreen) {
                                     int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
@@ -317,9 +282,12 @@ jobs:
                                 
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
                                 if (playerContainer != null) playerContainer.setVisibility(View.VISIBLE);
-                                videoLayout.setVisibility(View.VISIBLE);
-                                
-                                playUrl(url);
+                                playerView.setVisibility(View.VISIBLE);
+                                if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
+
+                                MediaSource mediaSource = buildMediaSource(url);
+                                player.setMediaSource(mediaSource);
+                                player.prepare(); player.play();
                             }
                         });
                     }
@@ -337,7 +305,7 @@ jobs:
                             RelativeLayout.LayoutParams playerParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                             playerContainer.setLayoutParams(playerParams);
                             playerContainer.setVisibility(View.VISIBLE);
-                            videoLayout.setVisibility(View.VISIBLE);
+                            playerView.setVisibility(View.VISIBLE);
 
                             RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                             webParams.removeRule(RelativeLayout.BELOW);
@@ -345,9 +313,15 @@ jobs:
                             wv.bringToFront();
                             wv.setBackgroundColor(Color.TRANSPARENT);
 
+                            playerView.setUseController(false); 
+
                             if (url != null && !url.isEmpty()) {
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
-                                playUrl(url);
+                                if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
+                                
+                                MediaSource mediaSource = buildMediaSource(url);
+                                player.setMediaSource(mediaSource);
+                                player.prepare(); player.play();
                             }
                         });
                     }
@@ -378,33 +352,39 @@ jobs:
                 wv.loadUrl("file:///android_asset/index.html");
             }
 
-            private void playUrl(String url) {
-                lastPlayedUrl = url;
-                try {
-                    Media media = new Media(libVLC, Uri.parse(url));
-                    media.addOption(":network-caching=2000");
-                    media.addOption(":live-caching=1000");
-                    mediaPlayer.setMedia(media);
-                    media.release();
-                    mediaPlayer.play();
-                } catch (Exception e) {
-                    e.printStackTrace();
+            // 🟢 لێدان و ناساندنا فەرمی یا تراکێن دەنگی د رێکا FLAG_DETECT_ACCESS_UNITS
+            private MediaSource buildMediaSource(String url) {
+                DataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
+                        .setAllowCrossProtocolRedirects(true);
+                Uri uri = Uri.parse(url);
+                String path = url.toLowerCase();
+                
+                if (path.contains("m3u8")) {
+                    return new HlsMediaSource.Factory(dataSourceFactory)
+                            .setExtractorFactory(new DefaultHlsExtractorFactory(
+                                    DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS | DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES,
+                                    true
+                            ))
+                            .createMediaSource(MediaItem.fromUri(uri));
                 }
+                
+                return new ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(MediaItem.fromUri(uri));
             }
 
             private void stopAndHidePlayer() {
                 retryHandler.removeCallbacks(retryRunnable);
-                if (mediaPlayer != null) { 
-                    mediaPlayer.stop(); 
-                }
+                if (player != null) { player.stop(); player.clearMediaItems(); }
                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.GONE);
                 if (playerContainer != null) playerContainer.setVisibility(View.GONE);
-                videoLayout.setVisibility(View.GONE);
+                playerView.setVisibility(View.GONE);
 
                 RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 webParams.addRule(RelativeLayout.BELOW, R.id.player_container);
                 wv.setLayoutParams(webParams);
                 wv.setVisibility(View.VISIBLE);
+                
+                playerView.setUseController(true);
 
                 if (isFullscreen || isTvMode) {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -444,15 +424,14 @@ jobs:
 
             @Override public void onBackPressed() {
                 if (isFullscreen || isTvMode) { stopAndHidePlayer(); wv.evaluateJavascript("if(typeof closeTvMode === 'function') closeTvMode();", null); }
-                else if (videoLayout.getVisibility() == View.VISIBLE) stopAndHidePlayer();
+                else if (playerView.getVisibility() == View.VISIBLE) stopAndHidePlayer();
                 else if (wv.canGoBack()) wv.goBack();
                 else super.onBackPressed();
             }
 
             @Override protected void onDestroy() {
                 super.onDestroy(); retryHandler.removeCallbacks(retryRunnable);
-                if (mediaPlayer != null) { mediaPlayer.release(); mediaPlayer = null; }
-                if (libVLC != null) { libVLC.release(); libVLC = null; }
+                if (player != null) { player.release(); player = null; }
             }
         }
         EOF
@@ -460,11 +439,11 @@ jobs:
         gradle wrapper --gradle-version 8.5
         chmod +x gradlew
 
-    - name: Build Premium VLC APK
+    - name: Build Premium ExoPlayer APK
       run: ./gradlew assembleDebug --stacktrace
 
-    - name: Upload Finished VLC APK
+    - name: Upload Finished ExoPlayer APK
       uses: actions/upload-artifact@v4
       with:
-        name: KurdTV-VLC-APK
+        name: KurdTV-ExoPlayer-APK
         path: app/build/outputs/apk/debug/app-debug.apk
