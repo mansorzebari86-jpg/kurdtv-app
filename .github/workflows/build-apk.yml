@@ -1,4 +1,3 @@
-
 name: Build Kurd TV VIP APK
 
 on:
@@ -85,7 +84,6 @@ jobs:
         }
         EOF
         
-        # 🟢 Layout Update: بکارئینانا RelativeLayout داکو بکارین WebView شەفاف بکەین و بێخینە سەر ExoPlayer
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -161,7 +159,6 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: زێدەکرنا فرمانێن playTvExo بۆ ئێخستنا WebView ب شێوەیێ شەفاف ل سەر ExoPlayer
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -260,7 +257,7 @@ jobs:
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
                                 isTvMode = false;
-                                playerView.setUseController(true); // نیشاندانا کۆنتڕۆلێن ئاسایی
+                                playerView.setUseController(true); 
                                 
                                 if (!isFullscreen) {
                                     int heightPx = (int) (240 * getResources().getDisplayMetrics().density);
@@ -286,7 +283,6 @@ jobs:
                     @JavascriptInterface
                     public void stopExo() { runOnUiThread(() -> stopAndHidePlayer()); }
 
-                    // 🟢 مۆدێ تەلەفزیۆنێ: ئێخستنا WebView شەفاف ل سەر ExoPlayer
                     @JavascriptInterface
                     public void playTvExo(final String url) {
                         runOnUiThread(() -> {
@@ -294,20 +290,18 @@ jobs:
                             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
                             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-                            // شاشەیا ExoPlayer تەمام مەزن دکەین
                             RelativeLayout.LayoutParams playerParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                             playerContainer.setLayoutParams(playerParams);
                             playerContainer.setVisibility(View.VISIBLE);
                             playerView.setVisibility(View.VISIBLE);
 
-                            // شاشەیا HTML ب تەمامی دێ کەڤیتە سەرڤە و شەفاف بیت
                             RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                             webParams.removeRule(RelativeLayout.BELOW);
                             wv.setLayoutParams(webParams);
                             wv.bringToFront();
                             wv.setBackgroundColor(Color.TRANSPARENT);
 
-                            playerView.setUseController(false); // ڤەشارتنا کۆنتڕۆلێن ExoPlayer چونکە HTML کۆنتڕۆل دکەت
+                            playerView.setUseController(false); 
 
                             if (url != null && !url.isEmpty()) {
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
@@ -351,7 +345,6 @@ jobs:
                 if (playerContainer != null) playerContainer.setVisibility(View.GONE);
                 playerView.setVisibility(View.GONE);
 
-                // زڤڕاندنا WebView بۆ باری ئاسایی
                 RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 webParams.addRule(RelativeLayout.BELOW, R.id.player_container);
                 wv.setLayoutParams(webParams);
@@ -374,7 +367,7 @@ jobs:
             }
 
             private void toggleFullscreen(boolean fullscreen) {
-                if (isTvMode) return; // TV mode ب خۆی شاشەیا تەمامە
+                if (isTvMode) return; 
                 isFullscreen = fullscreen;
                 if (fullscreen) {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
