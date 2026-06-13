@@ -159,6 +159,7 @@ jobs:
         </manifest>
         EOF
         
+        # 🟢 MainActivity: سیستەمێ زیرەک یێ دوو لایەنە (Hybrid) بۆ ڕەوانەکرنا کەنالێن Newline و Zed بۆ Wuffy یان VLC
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -256,6 +257,21 @@ jobs:
                     public void playInExo(final String url, final String name) {
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
+                                
+                                // 🟢 ناساندن و فلتەرکردنا کەنالێن بێ دەنگ بۆ ڕەوانەکرنێ بۆ دەرڤە (Wuffy یان VLC)
+                                String lowerName = name.toLowerCase();
+                                if (lowerName.contains("newline") || lowerName.contains("zed tv") || lowerName.contains("zedplus")) {
+                                    try {
+                                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                                        intent.setDataAndType(Uri.parse(url), "video/*");
+                                        Intent chooser = Intent.createChooser(intent, "پەخشکەرەکێ دەرەکی هەلبژێرە (Wuffy Player یان VLC):");
+                                        startActivity(chooser);
+                                    } catch (Exception e) {
+                                        Toast.makeText(MainActivity.this, "پەخشکەر نەهاتە دۆزران!", Toast.LENGTH_SHORT).show();
+                                    }
+                                    return; // پاشکەش دکەت و ناچیتە ناڤ لێدەرێ ناوخۆیی
+                                }
+
                                 isTvMode = false;
                                 playerView.setUseController(true); 
                                 
@@ -287,24 +303,39 @@ jobs:
                     @JavascriptInterface
                     public void playTvExo(final String url) {
                         runOnUiThread(() -> {
-                            isTvMode = true;
-                            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-                            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-                            RelativeLayout.LayoutParams playerParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                            playerContainer.setLayoutParams(playerParams);
-                            playerContainer.setVisibility(View.VISIBLE);
-                            playerView.setVisibility(View.VISIBLE);
-
-                            RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                            webParams.removeRule(RelativeLayout.BELOW);
-                            wv.setLayoutParams(webParams);
-                            wv.bringToFront();
-                            wv.setBackgroundColor(Color.TRANSPARENT);
-
-                            playerView.setUseController(false); 
-
                             if (url != null && !url.isEmpty()) {
+                                
+                                // 🟢 ئەگەر ل ناڤ مۆدێ تەلەفزیۆنێ ژی کەنال Newline یان Zed بوو، ب دروستی ڕەوانەی دەرڤە دکەت
+                                String lowerUrl = url.toLowerCase();
+                                if (lowerUrl.contains("max4kcdn") || lowerUrl.contains("109.71.252.138") || lowerUrl.contains("zedtv") || lowerUrl.contains("zedplus")) {
+                                    try {
+                                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                                        intent.setDataAndType(Uri.parse(url), "video/*");
+                                        Intent chooser = Intent.createChooser(intent, "پەخشکەرێ دەرەکی هەلبژێرە:");
+                                        startActivity(chooser);
+                                    } catch (Exception e) {
+                                        Toast.makeText(MainActivity.this, "پەخشکەر نەهاتە دۆزران!", Toast.LENGTH_SHORT).show();
+                                    }
+                                    return;
+                                }
+
+                                isTvMode = true;
+                                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+                                RelativeLayout.LayoutParams playerParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                                playerContainer.setLayoutParams(playerParams);
+                                playerContainer.setVisibility(View.VISIBLE);
+                                playerView.setVisibility(View.VISIBLE);
+
+                                RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                                webParams.removeRule(RelativeLayout.BELOW);
+                                wv.setLayoutParams(webParams);
+                                wv.bringToFront();
+                                wv.setBackgroundColor(Color.TRANSPARENT);
+
+                                playerView.setUseController(false); 
+
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
                                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
                                 
