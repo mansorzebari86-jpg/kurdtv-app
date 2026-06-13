@@ -159,7 +159,7 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: داڕشتنا نوو یا جێگیر دگەل ڕێکخستنا تەمام یا لایبرەریێن ExoPlayer
+        # 🟢 MainActivity: زێدەکرنا مەکینەیا ڕەوانەکرنێ ب ڕێکا Intent بۆ Wuffy Player دگەل ڕاوەستاندنا تەمام یا لێدەرێ ناوخۆیی
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -183,22 +183,12 @@ jobs:
         import android.widget.ProgressBar;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
-
         import com.google.android.exoplayer2.DefaultLoadControl;
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
         import com.google.android.exoplayer2.Player;
         import com.google.android.exoplayer2.PlaybackException;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
-
-        // زێدەکرنا لایبرەریێن گرنگ یێن دەنگی داکو خەلەتیا سۆر چارەسەر ببیت
-        import com.google.android.exoplayer2.source.MediaSource;
-        import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-        import com.google.android.exoplayer2.source.hls.DefaultHlsExtractorFactory;
-        import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
-        import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-        import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
-        import com.google.android.exoplayer2.upstream.DataSource;
 
         public class MainActivity extends AppCompatActivity {
             private WebView wv;
@@ -267,6 +257,15 @@ jobs:
                     public void playInExo(final String url, final String name) {
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
+                                
+                                // 🟢 ئەگەر کەنالێ لێدای Newline یان Zed بوو، دەستبەجێ لێدەرێ ناوخۆیی رادوەستینیت و Wuffy دەکەتەوە
+                                String lowerName = name.toLowerCase();
+                                if (lowerName.contains("newline") || lowerName.contains("zed tv") || lowerName.contains("zedplus")) {
+                                    stopAndHidePlayer(); // راوەستاندنا تەمام یا لێدەرێ ناوخۆیی
+                                    launchExternalWuffy(url); // پێکرنا Wuffy Player
+                                    return;
+                                }
+
                                 isTvMode = false;
                                 playerView.setUseController(true); 
                                 
@@ -286,9 +285,7 @@ jobs:
                                 playerView.setVisibility(View.VISIBLE);
                                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
 
-                                // 🟢 بکارئینانا لایبرەرییا زیرەک یا دەنگی
-                                MediaSource mediaSource = buildMediaSource(url);
-                                player.setMediaSource(mediaSource);
+                                player.setMediaItem(MediaItem.fromUri(Uri.parse(url)));
                                 player.prepare(); player.play();
                             }
                         });
@@ -301,6 +298,15 @@ jobs:
                     public void playTvExo(final String url) {
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
+                                
+                                // 🟢 ل ناڤ TV Mode ژی دا، کەنالێن Newline و Zed ڕادوەستینیت و رەوانەی Wuffy دکەت
+                                String lowerUrl = url.toLowerCase();
+                                if (lowerUrl.contains("max4kcdn") || lowerUrl.contains("109.71.252.138") || lowerUrl.contains("zedtv") || lowerUrl.contains("zedplus")) {
+                                    stopAndHidePlayer();
+                                    launchExternalWuffy(url);
+                                    return;
+                                }
+
                                 isTvMode = true;
                                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
                                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -310,19 +316,18 @@ jobs:
                                 playerContainer.setVisibility(View.VISIBLE);
                                 playerView.setVisibility(View.VISIBLE);
 
-                                playerView.setUseController(false); 
-
                                 RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                                 webParams.removeRule(RelativeLayout.BELOW);
                                 wv.setLayoutParams(webParams);
                                 wv.bringToFront();
                                 wv.setBackgroundColor(Color.TRANSPARENT);
 
+                                playerView.setUseController(false); 
+
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
                                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
                                 
-                                MediaSource mediaSource = buildMediaSource(url);
-                                player.setMediaSource(mediaSource);
+                                player.setMediaItem(MediaItem.fromUri(Uri.parse(url)));
                                 player.prepare(); player.play();
                             }
                         });
@@ -354,24 +359,31 @@ jobs:
                 wv.loadUrl("file:///android_asset/index.html");
             }
 
-            // 🟢 سیستەمێ دۆزینەوەیا دەنگی ب ڕێکا FLAG_DETECT_ACCESS_UNITS د ناڤ HLS دا
-            private MediaSource buildMediaSource(String url) {
-                DataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
-                        .setAllowCrossProtocolRedirects(true);
-                Uri uri = Uri.parse(url);
-                String path = url.toLowerCase();
-                
-                if (path.contains("m3u8") || path.contains("ts")) {
-                    return new HlsMediaSource.Factory(dataSourceFactory)
-                            .setExtractorFactory(new DefaultHlsExtractorFactory(
-                                    DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS | DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES,
-                                    true
-                            ))
-                            .createMediaSource(MediaItem.fromUri(uri));
+            // 🟢 فرمانا فەرمی یا ڕەوانەکرنێ بۆ لێدەرێ دەرەکی (Wuffy Player)
+            private void launchExternalWuffy(String url) {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.parse(url), "video/*");
+                    
+                    PackageManager pm = getPackageManager();
+                    boolean isWuffyInstalled = false;
+                    try {
+                        pm.getPackageInfo("co.wuffy.player", PackageManager.GET_ACTIVITIES);
+                        isWuffyInstalled = true;
+                    } catch (PackageManager.NameNotFoundException e) {
+                        isWuffyInstalled = false;
+                    }
+                    
+                    if (isWuffyInstalled) {
+                        intent.setPackage("co.wuffy.player");
+                        startActivity(intent);
+                    } else {
+                        Intent chooser = Intent.createChooser(intent, "پەخشکەرەکێ دەرەکی هەلبژێرە:");
+                        startActivity(chooser);
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "ئاریشە د پێکرنا لێدەری دا هەیە!", Toast.LENGTH_SHORT).show();
                 }
-                
-                return new ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(MediaItem.fromUri(uri));
             }
 
             private void stopAndHidePlayer() {
