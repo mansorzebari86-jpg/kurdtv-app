@@ -159,7 +159,7 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: تەنێ کەنالێن Newline دگەل لایەنێ دەرەکی Wuffy Player دهێنە پێکرن
+        # 🟢 MainActivity: لۆدکرنا ڕاستەوخۆ یا سایتێ تە یێ ئۆنلاین داکو خۆکارانە گۆهۆڕین نوو ببن د ناڤ مۆبایلێ دا
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -258,7 +258,7 @@ jobs:
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
                                 
-                                // 🟢 👈 تەنێ کەنالێ لێدای Newline بوو، لێدەرێ ناوخۆیی ڕادوەستینیت و Wuffy دەکەتەوە
+                                // ئەگەر کەنالێ لێدای Newline بوو، لێدەرێ ناوخۆیی ڕادوەستینیت و Wuffy دەکەتەوە
                                 String lowerName = name.toLowerCase();
                                 if (lowerName.contains("newline")) {
                                     stopAndHidePlayer(); 
@@ -299,7 +299,7 @@ jobs:
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
                                 
-                                // 🟢 👈 ل ناڤ TV Mode ژی دا، کەنالێن Newline ڕادوەستینیت و رەوانەی Wuffy دکەت
+                                // ل ناڤ TV Mode ژی دا، کەنالێن Newline ڕادوەستینیت و رەوانەی Wuffy دکەت
                                 String lowerUrl = url.toLowerCase();
                                 if (lowerUrl.contains("max4kcdn")) {
                                     stopAndHidePlayer();
@@ -356,7 +356,9 @@ jobs:
                 });
                 
                 wv.setWebChromeClient(new WebChromeClient());
-                wv.loadUrl("file:///android_asset/index.html");
+                
+                // 🟢 لۆدکرنا لێنکێ ئۆنلاین یێ سایتێ تە داکو ڕاستەوخۆ هەمی نووکرن د ئەپی دا دیار ببن ب بێ کۆمپیڵکرنا دووبارە
+                wv.loadUrl("https://mansorzebari86-jpg.github.io/kurdtv-app/");
             }
 
             private void launchExternalWuffy(String url) {
