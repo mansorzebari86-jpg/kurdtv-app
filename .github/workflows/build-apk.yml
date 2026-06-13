@@ -159,7 +159,7 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: سیستەمێ زیرەکێ ڕەوانەکرنێ ڕاستەوخۆ بۆ Wuffy Player دگەل ڕەوانەکرن بۆ تێلیگرامێ هەکە ئەپ نەهاتبیتە دۆزینەوە
+        # 🟢 MainActivity: سیستەمێ توند و ناچارکەر یێ Wuffy Player ب خێراییەکا نایاب بۆ کەنالێن Newline و Zed
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -359,7 +359,7 @@ jobs:
                 wv.loadUrl("file:///android_asset/index.html");
             }
 
-            // 🟢 پێکرنا دەستبەجێ یا Wuffy Player ب بێ نیشاندانا یێن دی؛ ئەگەر نەبوو ژی دێ رەوانەی تێلیگرام کەت
+            // 🟢 فرمانا فەرمی یا ڕەوانەکرنێ ڕاستەوخۆ بۆ Wuffy Player ب بێ نیشاندانا چ لێدەرێن دی
             private void launchExternalWuffy(String url) {
                 try {
                     PackageManager pm = getPackageManager();
@@ -374,10 +374,10 @@ jobs:
                     if (isWuffyInstalled) {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setDataAndType(Uri.parse(url), "video/*");
-                        intent.setPackage("co.wuffy.player"); // 👈 ڕاستەوخۆ دەستبەجێ Wuffy دکەتەوە
+                        intent.setPackage("co.wuffy.player"); // 👈 ل گەل ڤێ فەرمانێ ڕاستەوخۆ دەستبەجێ هەر Wuffy دکەتەوە
                         startActivity(intent);
                     } else {
-                        // ئەگەر ل سەر تەلەفۆنا وی نەبوو، ڕاستەوخۆ پەیامێ نیشان ددەت و تێلیگرامێ ڤەدکەت
+                        // ئەگەر ل سەر تەلەفۆنا وی نەبوو، ڕاستەوخۆ پەیامێ نیشان ددەت و تێلیگرامێ تە دکەتەوە
                         Toast.makeText(MainActivity.this, "هێڤیدارم بەرنامەی دابەزینن ژ تێلیگرامێ مە دا", Toast.LENGTH_LONG).show();
                         try {
                             Intent tgIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/Kurdtvvip"));
