@@ -159,7 +159,7 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: سیستەمێ توند و ناچارکەر یێ Wuffy Player ب خێراییەکا نایاب بۆ کەنالێن Newline و Zed
+        # 🟢 MainActivity: داڕشتنا نوو یا بێ کێماسی بۆ پێکرنا Wuffy Player ب بێ ڕێگریێن سیستەمێ ئەندرۆیدێ
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -316,13 +316,13 @@ jobs:
                                 playerContainer.setVisibility(View.VISIBLE);
                                 playerView.setVisibility(View.VISIBLE);
 
+                                playerView.setUseController(false); 
+
                                 RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                                 webParams.removeRule(RelativeLayout.BELOW);
                                 wv.setLayoutParams(webParams);
                                 wv.bringToFront();
                                 wv.setBackgroundColor(Color.TRANSPARENT);
-
-                                playerView.setUseController(false); 
 
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
                                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
@@ -359,35 +359,23 @@ jobs:
                 wv.loadUrl("file:///android_asset/index.html");
             }
 
-            // 🟢 فرمانا فەرمی یا ڕەوانەکرنێ ڕاستەوخۆ بۆ Wuffy Player ب بێ نیشاندانا چ لێدەرێن دی
+            // 🟢 سیستەمێ نوو و ناوازە یێ پێکرنا Wuffy ب بێ پشکنینێن جینی یێن ڕێگریکەر
             private void launchExternalWuffy(String url) {
                 try {
-                    PackageManager pm = getPackageManager();
-                    boolean isWuffyInstalled = false;
-                    try {
-                        pm.getPackageInfo("co.wuffy.player", PackageManager.GET_ACTIVITIES);
-                        isWuffyInstalled = true;
-                    } catch (PackageManager.NameNotFoundException e) {
-                        isWuffyInstalled = false;
-                    }
-                    
-                    if (isWuffyInstalled) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setDataAndType(Uri.parse(url), "video/*");
-                        intent.setPackage("co.wuffy.player"); // 👈 ل گەل ڤێ فەرمانێ ڕاستەوخۆ دەستبەجێ هەر Wuffy دکەتەوە
-                        startActivity(intent);
-                    } else {
-                        // ئەگەر ل سەر تەلەفۆنا وی نەبوو، ڕاستەوخۆ پەیامێ نیشان ددەت و تێلیگرامێ تە دکەتەوە
-                        Toast.makeText(MainActivity.this, "هێڤیدارم بەرنامەی دابەزینن ژ تێلیگرامێ مە دا", Toast.LENGTH_LONG).show();
-                        try {
-                            Intent tgIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/Kurdtvvip"));
-                            startActivity(tgIntent);
-                        } catch (Exception ex) {
-                            // fallback
-                        }
-                    }
+                    // ١. دروستکردنا لێنکێ فەرمی یێ کەنال و دەرخستن بۆ Wuffy Player
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.parse(url), "video/*");
+                    intent.setPackage("co.wuffy.player"); // 👈 فەرمانا ناچارکەر بۆ هندێ تەنێ هەر Wuffy ڤەکەت
+                    startActivity(intent);
                 } catch (Exception e) {
-                    Toast.makeText(MainActivity.this, "ئاریشە د پێکرنا لێدەری دا هەیە!", Toast.LENGTH_SHORT).show();
+                    // ٢. ئەگەر خەلەتی دا (واتا ئەپ ل سەر مۆبایلێ نەبوو)، دێ پەیامێ نیشان دەت و تێلیگرامێ ڤەکەت
+                    Toast.makeText(MainActivity.this, "هێڤیدارم بەرنامەی دابەزینن ژ تێلیگرامێ مە دا", Toast.LENGTH_LONG).show();
+                    try {
+                        Intent tgIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/Kurdtvvip"));
+                        startActivity(tgIntent);
+                    } catch (Exception ex) {
+                        // fallback
+                    }
                 }
             }
 
