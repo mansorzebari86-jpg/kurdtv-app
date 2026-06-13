@@ -84,7 +84,6 @@ jobs:
         }
         EOF
         
-        # Layout یێ رێکخستی و ڕەسەن یێ ExoPlayer
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -160,7 +159,6 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: زێدەکرنا ئەپشنێ FLAG_DETECT_ACCESS_UNITS د ناڤ لێدەرێ ExoPlayer دا بۆ لێدانا تەمام یا دەنگێ هەمی کەنالان
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -184,20 +182,12 @@ jobs:
         import android.widget.ProgressBar;
         import android.widget.Toast;
         import androidx.appcompat.app.AppCompatActivity;
-
         import com.google.android.exoplayer2.DefaultLoadControl;
         import com.google.android.exoplayer2.ExoPlayer;
         import com.google.android.exoplayer2.MediaItem;
         import com.google.android.exoplayer2.Player;
         import com.google.android.exoplayer2.PlaybackException;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
-        import com.google.android.exoplayer2.source.MediaSource;
-        import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-        import com.google.android.exoplayer2.source.hls.DefaultHlsExtractorFactory;
-        import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
-        import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-        import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
-        import com.google.android.exoplayer2.upstream.DataSource;
 
         public class MainActivity extends AppCompatActivity {
             private WebView wv;
@@ -285,8 +275,7 @@ jobs:
                                 playerView.setVisibility(View.VISIBLE);
                                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
 
-                                MediaSource mediaSource = buildMediaSource(url);
-                                player.setMediaSource(mediaSource);
+                                player.setMediaItem(MediaItem.fromUri(Uri.parse(url)));
                                 player.prepare(); player.play();
                             }
                         });
@@ -319,8 +308,7 @@ jobs:
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
                                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
                                 
-                                MediaSource mediaSource = buildMediaSource(url);
-                                player.setMediaSource(mediaSource);
+                                player.setMediaItem(MediaItem.fromUri(Uri.parse(url)));
                                 player.prepare(); player.play();
                             }
                         });
@@ -350,26 +338,6 @@ jobs:
                 
                 wv.setWebChromeClient(new WebChromeClient());
                 wv.loadUrl("file:///android_asset/index.html");
-            }
-
-            // 🟢 لێدان و ناساندنا فەرمی یا تراکێن دەنگی د رێکا FLAG_DETECT_ACCESS_UNITS
-            private MediaSource buildMediaSource(String url) {
-                DataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
-                        .setAllowCrossProtocolRedirects(true);
-                Uri uri = Uri.parse(url);
-                String path = url.toLowerCase();
-                
-                if (path.contains("m3u8")) {
-                    return new HlsMediaSource.Factory(dataSourceFactory)
-                            .setExtractorFactory(new DefaultHlsExtractorFactory(
-                                    DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS | DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES,
-                                    true
-                            ))
-                            .createMediaSource(MediaItem.fromUri(uri));
-                }
-                
-                return new ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(MediaItem.fromUri(uri));
             }
 
             private void stopAndHidePlayer() {
