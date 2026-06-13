@@ -159,7 +159,7 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: لۆدکرنا ڕاستەوخۆ یا سایتێ تە یێ ئۆنلاین داکو خۆکارانە گۆهۆڕین نوو ببن د ناڤ مۆبایلێ دا
+        # 🟢 MainActivity: کۆنترۆلا کەنالێن Wuffy و لادانا فۆل باک کەنالێن دەرەکی بۆ تێلیگرامێ
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -258,9 +258,10 @@ jobs:
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
                                 
-                                // ئەگەر کەنالێ لێدای Newline بوو، لێدەرێ ناوخۆیی ڕادوەستینیت و Wuffy دەکەتەوە
+                                // 🟢 پشکنیین بۆ هندێ کەنال یێ سێرڤەرێ max4kcdn بیت بەلێ "Ayet" نەبیت بۆ فرێکرنێ دەرڤە بۆ Wuffy
                                 String lowerName = name.toLowerCase();
-                                if (lowerName.contains("newline")) {
+                                String lowerUrl = url.toLowerCase();
+                                if ((lowerUrl.contains("max4kcdn") || lowerName.contains("newline")) && !lowerName.contains("ayet")) {
                                     stopAndHidePlayer(); 
                                     launchExternalWuffy(url); 
                                     return; 
@@ -299,9 +300,9 @@ jobs:
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
                                 
-                                // ل ناڤ TV Mode ژی دا، کەنالێن Newline ڕادوەستینیت و رەوانەی Wuffy دکەت
+                                // 🟢 ل ناڤ TV Mode ژی دا، تەنێ کەنالێن سێرڤەرێ max4kcdn و بەلێ دیسان ژبلی کەنالێ Ayet TV (کۆدێ ١٨٣٤٢٠) ڕەوانەی دەرڤە دکەت
                                 String lowerUrl = url.toLowerCase();
-                                if (lowerUrl.contains("max4kcdn")) {
+                                if (lowerUrl.contains("max4kcdn") && !lowerUrl.contains("183420")) {
                                     stopAndHidePlayer();
                                     launchExternalWuffy(url);
                                     return;
@@ -357,10 +358,11 @@ jobs:
                 
                 wv.setWebChromeClient(new WebChromeClient());
                 
-                // 🟢 لۆدکرنا لێنکێ ئۆنلاین یێ سایتێ تە داکو ڕاستەوخۆ هەمی نووکرن د ئەپی دا دیار ببن ب بێ کۆمپیڵکرنا دووبارە
+                // لۆدکرنا لێنکێ ئۆنلاین یێ سایتێ تە
                 wv.loadUrl("https://mansorzebari86-jpg.github.io/kurdtv-app/");
             }
 
+            // 🟢 پێکرنا دەستبەجێ یا Wuffy Player؛ هەکە نەبوو تەنێ نامەیە دەر دکەڤیت و کەتوارا تێلیگرامێ ڤەناکەت
             private void launchExternalWuffy(String url) {
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -369,12 +371,6 @@ jobs:
                     startActivity(intent);
                 } catch (Exception e) {
                     Toast.makeText(MainActivity.this, "هێڤیدارم بەرنامەی دابەزینن ژ تێلیگرامێ مە دا", Toast.LENGTH_LONG).show();
-                    try {
-                        Intent tgIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/Kurdtvvip"));
-                        startActivity(tgIntent);
-                    } catch (Exception ex) {
-                        // fallback
-                    }
                 }
             }
 
