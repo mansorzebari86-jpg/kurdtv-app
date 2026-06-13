@@ -159,6 +159,7 @@ jobs:
         </manifest>
         EOF
         
+        # 🟢 MainActivity: چارەسەریا فەرمی یا دەنگی ب رێکا ناچارکرنا ExoPlayer بۆ خاندنا فایلی (setAllowChunklessPreparation)
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -188,6 +189,11 @@ jobs:
         import com.google.android.exoplayer2.Player;
         import com.google.android.exoplayer2.PlaybackException;
         import com.google.android.exoplayer2.ui.StyledPlayerView;
+        import com.google.android.exoplayer2.source.MediaSource;
+        import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+        import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+        import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+        import com.google.android.exoplayer2.upstream.DataSource;
 
         public class MainActivity extends AppCompatActivity {
             private WebView wv;
@@ -274,7 +280,10 @@ jobs:
                                 if (playerContainer != null) playerContainer.setVisibility(View.VISIBLE);
                                 playerView.setVisibility(View.VISIBLE);
                                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
-                                player.setMediaItem(MediaItem.fromUri(Uri.parse(url)));
+
+                                // 🟢 لێدانا فەرمی یا Hls ب رێکا پاشەکێشکرناChunkless Preparation بۆ هێنانەڤەیا دەنگی
+                                MediaSource mediaSource = buildMediaSource(Uri.parse(url));
+                                player.setMediaSource(mediaSource);
                                 player.prepare(); player.play();
                             }
                         });
@@ -306,7 +315,10 @@ jobs:
                             if (url != null && !url.isEmpty()) {
                                 retryCount = 0; retryHandler.removeCallbacks(retryRunnable);
                                 if (loadingSpinner != null) loadingSpinner.setVisibility(View.VISIBLE);
-                                player.setMediaItem(MediaItem.fromUri(Uri.parse(url)));
+
+                                // 🟢 لێدان ل ناڤ TV Mode دا ب چاکسازیا دەنگی
+                                MediaSource mediaSource = buildMediaSource(Uri.parse(url));
+                                player.setMediaSource(mediaSource);
                                 player.prepare(); player.play();
                             }
                         });
@@ -336,6 +348,22 @@ jobs:
                 
                 wv.setWebChromeClient(new WebChromeClient());
                 wv.loadUrl("file:///android_asset/index.html");
+            }
+
+            // 🟢 چێکرنا دروست یا لێدەرێ HLS ب تێپەراندنا ئاریشەیا دەنگی
+            private MediaSource buildMediaSource(Uri uri) {
+                DataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
+                        .setAllowCrossProtocolRedirects(true);
+                
+                String path = uri.getPath();
+                if (path != null && (path.endsWith(".m3u8") || path.contains(".m3u8") || uri.toString().contains("m3u8"))) {
+                    return new HlsMediaSource.Factory(dataSourceFactory)
+                            .setAllowChunklessPreparation(false) // 👈 ئەڤە گرنگترین بەشە بۆ هێنانەڤەیا دەنگی
+                            .createMediaSource(MediaItem.fromUri(uri));
+                }
+                
+                return new ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(MediaItem.fromUri(uri));
             }
 
             private void stopAndHidePlayer() {
