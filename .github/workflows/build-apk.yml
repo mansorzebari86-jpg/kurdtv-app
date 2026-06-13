@@ -159,7 +159,7 @@ jobs:
         </manifest>
         EOF
         
-        # 🟢 MainActivity: زێدەکرنا مەکینەیا ڕەوانەکرنێ ب ڕێکا Intent بۆ Wuffy Player دگەل ڕاوەستاندنا تەمام یا لێدەرێ ناوخۆیی
+        # 🟢 MainActivity: سیستەمێ زیرەکێ ڕەوانەکرنێ ڕاستەوخۆ بۆ Wuffy Player دگەل ڕەوانەکرن بۆ تێلیگرامێ هەکە ئەپ نەهاتبیتە دۆزینەوە
         cat << 'EOF' > app/src/main/java/com/kurdtv/vip/MainActivity.java
         package com.kurdtv.vip;
         import android.content.Intent;
@@ -258,12 +258,12 @@ jobs:
                         runOnUiThread(() -> {
                             if (url != null && !url.isEmpty()) {
                                 
-                                // 🟢 ئەگەر کەنالێ لێدای Newline یان Zed بوو، دەستبەجێ لێدەرێ ناوخۆیی رادوەستینیت و Wuffy دەکەتەوە
+                                // 🟢 ئەگەر کەنالێ لێدای Newline یان Zed بوو، لێدەرێ ناوخۆیی ڕادوەستینیت و Wuffy دەکەتەوە
                                 String lowerName = name.toLowerCase();
                                 if (lowerName.contains("newline") || lowerName.contains("zed tv") || lowerName.contains("zedplus")) {
-                                    stopAndHidePlayer(); // راوەستاندنا تەمام یا لێدەرێ ناوخۆیی
-                                    launchExternalWuffy(url); // پێکرنا Wuffy Player
-                                    return;
+                                    stopAndHidePlayer(); 
+                                    launchExternalWuffy(url); 
+                                    return; 
                                 }
 
                                 isTvMode = false;
@@ -359,12 +359,9 @@ jobs:
                 wv.loadUrl("file:///android_asset/index.html");
             }
 
-            // 🟢 فرمانا فەرمی یا ڕەوانەکرنێ بۆ لێدەرێ دەرەکی (Wuffy Player)
+            // 🟢 پێکرنا دەستبەجێ یا Wuffy Player ب بێ نیشاندانا یێن دی؛ ئەگەر نەبوو ژی دێ رەوانەی تێلیگرام کەت
             private void launchExternalWuffy(String url) {
                 try {
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(Uri.parse(url), "video/*");
-                    
                     PackageManager pm = getPackageManager();
                     boolean isWuffyInstalled = false;
                     try {
@@ -375,11 +372,19 @@ jobs:
                     }
                     
                     if (isWuffyInstalled) {
-                        intent.setPackage("co.wuffy.player");
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.parse(url), "video/*");
+                        intent.setPackage("co.wuffy.player"); // 👈 ڕاستەوخۆ دەستبەجێ Wuffy دکەتەوە
                         startActivity(intent);
                     } else {
-                        Intent chooser = Intent.createChooser(intent, "پەخشکەرەکێ دەرەکی هەلبژێرە:");
-                        startActivity(chooser);
+                        // ئەگەر ل سەر تەلەفۆنا وی نەبوو، ڕاستەوخۆ پەیامێ نیشان ددەت و تێلیگرامێ ڤەدکەت
+                        Toast.makeText(MainActivity.this, "هێڤیدارم بەرنامەی دابەزینن ژ تێلیگرامێ مە دا", Toast.LENGTH_LONG).show();
+                        try {
+                            Intent tgIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/Kurdtvvip"));
+                            startActivity(tgIntent);
+                        } catch (Exception ex) {
+                            // fallback
+                        }
                     }
                 } catch (Exception e) {
                     Toast.makeText(MainActivity.this, "ئاریشە د پێکرنا لێدەری دا هەیە!", Toast.LENGTH_SHORT).show();
