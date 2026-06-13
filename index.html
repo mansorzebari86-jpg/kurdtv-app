@@ -318,7 +318,7 @@
 
     <!-- 🟢 TV MODE OVERLAY (Maten TV Style Overlay) -->
     <div id="tvModePage">
-        <!-- ڤیدیۆ پلەیەرێ یەدەگ بۆ وێب (ئەگەر ئەپ نەبوو) -->
+        <!-- ڤیدیۆ پلەیەرێ یەدەگ بۆ وێب -->
         <div class="tv-video-container" id="tvVideoContainer">
             <video id="tvVideoPlayer" playsinline></video>
             <div id="tvLoader" class="tv-loader"></div>
@@ -356,6 +356,8 @@
             { name: "BBC News", type: "news", logo: "https://i.ibb.co/wNC2pcDb/images-1.png", stream: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8" },
             { name: "Welat TV", type: "news", logo: "https://kimi-web-img.moonshot.cn/img/www.welattv.net/b349a68df1104b69845c3c1074f83415f5902c46.jpg", stream: "https://stream.badinan.xyz/welat/tv/chunklist_w1721419603.m3u8" },
             { name: "Ava media", type: "news", logo: "https://i.ibb.co/qL8g74Rt/images-29.jpg", stream: "https://ava2.store/upload/ava.m3u8" },
+            { name: "Zaxo TV", type: "news", logo: "https://i.ibb.co/kZ9VgYg/images-47.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/99927.m3u8" },
+            { name: "Dever TV", type: "news", logo: "https://i.ibb.co/HDtWQ19q/images-48.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/20250.m3u8" },
             
             // وەرزش (Sports)
             { name: "Bein Sport", type: "sports", logo: "https://i.ibb.co/ycFrxJ3N/miswag-o-UHT2-K.jpg", stream: "http://103.205.17.194:8080/live/mohammamohammad/112233445566/228976.m3u8?token=HRVfWENfFAMTV1AFDFVXDAMAUwJSAF4EB1VcDQAAXFZSB1JdBwEDXFNDGhBKF0ZQUF48X1UVAgECWwACAx0bRxVSRWZZUxQDE1IBAwtUFhkTRhBTQ2hRQxJZGwQFCBcDVAAZAQIZBwkGQxoQTBBRR25SBFNfQxoJEi5WT1xdVVM6GAIXABceaEUkW1BcB1BQVQhDYwoXdFpeFkEOFXIQEidHR1VVYFNbeghCbhZWBwYfAEMeen9sfnxPGVlcWlwSIVJUUl8eFnRwJgQHDUNHQVNSE0YRQV1BCkMLFUdUTwhGBQIJEGRXX1ATX24WVgcGHwBBGhNDUV5VQQMFGRNJWwIVDRsBBA8OBFMFEBVBUU1FVhFYUFtnV1UVUFZQEwNcE1tbFRJYWGZVBFtTVwcWDxMDQRoTXktDEllXQFldFRAEXkNLUUNTGwtDBAEIURYZE1AMQ19DSkoSWRt8ZBMVEANPQ1xeRF9WX0MMEFRQQQ0TH0FUWENKUkQGZkFMQVwQXBUVFRJeRWZDBEVGSwZVWFRBQQwTBxofEgJaQVxHXG0FWFlKEg0UCBNNFF9YG2tWXl0NU1JDUVxeEBsPFwAbHkRaWFdZQ1lLbhFfVhtZFgQAA1oDCAIaTg==" },
@@ -366,7 +368,7 @@
             { name: "MMN Sport", type: "sports", logo: "https://i.ibb.co/bMTjRs77/mmn-tv-528x297.png", stream: "http://mmn.mypsx.net:1935/live/mmnhdsport/chunklist_w29500582.m3u8" },
             { name: "NRT Sport", type: "sports", logo: "https://i.ibb.co/k6BnVvYS/images-3.jpg", stream: "https://live20.bozztv.com/giatv/giatv-NRT-SPORT/NRT-SPORT/chunks.m3u8" },
             { name: "SPI Sport", type: "sports", logo: "https://i.ibb.co/dJj2wZR8/images-15.jpg", stream: "https://live20.bozztv.com/giatv/giatv-spi_sports_hd/spi_sports_hd/chunks.m3u8" },
-            { name: "Alwan Sport 1", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/315214.m3u8?token=SxRYWRUKFwgbUwUKU1VWU1pRAAQAV1QJBVFeVVcNW1RRAVYKVwZUUQ8VGRsRFkcHWQtpD1xBDQsHBwpQBhkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwNBAgEECVFAGRBcT0FcEAxUDmcCUxBRAFIaDFxNDV4ZGwxeaVRdCwNbVhsNFwlAThcLSxYUXFYWW1QaEFoIRkdYF1UUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpUUwEAChVI" },
+            { name: "Alwan Sport 1", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/315214.m3u8?token=SxRYWRUKFwgbUwUKU1VWU1pRAAQAV1QJBVFeVVcNW1RRAVYKVwZUUQ8VGRsRFkcHWQtpD1xBDQsHBwpQBhkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwNBAgEECVFAGRBcT0FcEAxUDmcCUxBRAFIaDFxNDV4ZGwxeaVRdCwNbVhsNFwlAThcLSxYUXFYWW1QaEFoIRkdYF1UUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpQUgIQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpUUwEAChVI" },
             { name: "Alwan Sport 2", type: "sports", logo: "https://i.ibb.co/qFY3y2jZ/images-6.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/315215.m3u8?token=SxRYWRUKFwgbUQBdUgEBWgFQUwIIUgMNVQBbUQcBX1RVBQgIU1JTVgEVGRsRFkcHWQtpD1xBDQsHBwpQBxkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwNBAwMGCVJAGRBcT0FcEAxUDmcCUxBRAFIaDFxNDV4ZGwxeaVRdCwNbVhsNFwlAThcLSxYUXFYWW1QaEFoIRkdYF1UUChpRUgYQFRVWVhcMQRBBRAxEcTIVFBRXQBVXW0oKX1gSAkQPBkcBFRkbCxFqEF0VQhRdAlpdRBACQwIXFUFdV0hnBQ1bXFxUQVANDEZAAkQHRBRBWldYW0wOQGpJClQUChpUUwEGDhVI" },
             { name: "Stv sport 1", type: "sports", logo: "https://i.ibb.co/HDKMgLFM/images-35.jpg", stream: "http://194.42.205.21:25461/live/NedalAlsayedhome/J9Rm9gAXVE/300322.m3u8?token=SxRYWRUKFwgbDwQIUgZXVAsFB18JVw5dUlYLBwQGWgVUUgIOAFBRBAAVGRsRFkcHWQtpD1xBDQsGAgtTABkbFkNTQmcPBhcIGwENDlBSF04aEl8LXUENCBoQSAhWFwMNRVpcFEQHTUZcRVtYDj1RB04PVQMaWVlNWl4UQ11bZgdVW1FWAkAPEAgVGRsLEUVAAghDClRPFVpfRkoARlAbWV5DXFRKQFZdTFlBSxtAD0BxNxRKGgZPTFNcSwhdWxtZElsDTV5AGRBQRGpLBxFBEF0HWwNKQQ0aBhAUQ19UQTxTWV5WAwFBW1ZZRhtYQARAFERbCVYKQ1dEbUgIVhcDDUVaXEU=" },
             { name: "blue sport 1", type: "sports", logo: "https://i.ibb.co/Hv2Lm8F/Screenshot-20260612-011105.jpg", stream: "https://prod-fastly-eu-central-1.video.pscp.tv/Transcoding/v1/hls/adqwnKUWAbRb-KgQKN0S0hmoyzkFJOZE3flgiHgStB44ICsdEhpglGPQOrJ1oICHLRXjwAj_TJdFykOQvU574w/non_transcode/eu-central-1/periscope-replay-direct-prod-eu-central-1-public/master_dynamic_highlatency.m3u8?type=live" },
@@ -403,6 +405,11 @@
             { name: "Newline 1", type: "movies", logo: "https://i.ibb.co/8gqyD7wx/images-41.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119549.m3u8" },
             { name: "Newline 2", type: "movies", logo: "https://i.ibb.co/Zz9Zt4k7/images-42.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119550.m3u8" },
             { name: "Zed tv", type: "movies", logo: "https://i.ibb.co/MTpXm70/images-43.jpg", stream: "http://109.71.252.138/Zedtv/tracks-v1a1/mono.m3u8?token=yusfstore3434fyusfstore3434yusfstore3434yusfstore3434yusfstore3434fwestrqwerwefwefrwefwefwes&type=live" },
+            { name: "LD Nujen", type: "movies", logo: "https://i.ibb.co/yc2d9Hcq/images-44.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/99061.m3u8" },
+            { name: "Niga Family", type: "movies", logo: "https://i.ibb.co/6cLn5ZwC/Niga-family.png", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/119551.m3u8" },
+            { name: "LD Azhin", type: "movies", logo: "https://i.ibb.co/qMRSR8GV/images-45.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/141618.m3u8" },
+            { name: "Reng TV", type: "movies", logo: "https://i.ibb.co/NdNcDSjQ/images-46.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/141623.m3u8" },
+            { name: "Fox TV", type: "movies", logo: "https://i.ibb.co/cKGKRgcp/images-3.png", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/115338.m3u8" },
 
             // مۆسیقا و قورئان (Music & Quran)
             { name: "Mix Kurdish", type: "music", logo: "https://i.ibb.co/mr9SgBKJ/images-8.jpg", stream: "http://avrstream.com:1935/live/Mix-kurdy/playlist.m3u8" },
@@ -425,7 +432,12 @@
             { name: "Euro Kurd", type: "music", logo: "https://i.postimg.cc/08Vjd4K2/EKURD.png", stream: "http://baskhd.ddns.net:40/live/Eurokurd/index.m3u8" }, 
             { name: "Garyan TV", type: "music", logo: "https://i.postimg.cc/GrD2hs6T/36667bd9-3911-43aa-8048-1a8efd701216.png", stream: "https://live20.bozztv.com/giatv/giatv-halabja88garyan/halabja88garyan/chunks.m3u8" }, 
             { name: "Mihrab TV", type: "music", logo: "https://i.postimg.cc/y1r0XkCp/minara.png", stream: "http://bblserver.ddns.net:1935/live/mihrabfm/playlist.m3u8" }, 
-            { name: "Spi Kids", type: "music", logo: "https://i.postimg.cc/nFJkFmgm/KIDS.png", stream: "https://live20.bozztv.com/giatv/giatv-spikids4k2025/spikids4k2025/chunks.m3u8" }
+            { name: "Spi Kids", type: "music", logo: "https://i.postimg.cc/nFJkFmgm/KIDS.png", stream: "https://live20.bozztv.com/giatv/giatv-spikids4k2025/spikids4k2025/chunks.m3u8" },
+            { name: "Ayet TV", type: "music", logo: "https://i.ibb.co/Rk0Lm6x7/Screenshot-20260613-154627.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/183420.m3u8" },
+            { name: "Delal TV", type: "music", logo: "https://i.ibb.co/GQnK9dVd/download-1.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/42525.m3u8" },
+            { name: "Kalapor TV", type: "music", logo: "https://i.ibb.co/60fRV5Bd/download-2.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/115341.m3u8" },
+            { name: "Nergz TV", type: "music", logo: "https://i.ibb.co/Y4G4HhP2/images-49.jpg", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/183400.m3u8" },
+            { name: "Kurdana TV", type: "music", logo: "https://i.ibb.co/dwkMBdWf/images-4.png", stream: "http://max4kcdn.com:8080/live/5161699711/3840575058/147422.m3u8" }
         ];
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -514,6 +526,7 @@
         const tvLoader = document.getElementById('tvLoader');
         let tvUiTimeout;
 
+        // زڤڕاندنا بۆ باری شەفافی د مۆدێ تەلەڤیزیۆنێ دا
         function openTvMode() {
             document.body.classList.add('tv-active'); 
             document.getElementById('tvModePage').style.display = 'block';
@@ -613,4 +626,4 @@
         }
     </script>
 </body>
-            </html>
+    </html>
